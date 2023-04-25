@@ -5,4 +5,3 @@ Run using:
 Note that currently nothing is output to output_filename but a temporary file name can be used. For example:
 
 ./ssa text suffixes out
-# SSA
