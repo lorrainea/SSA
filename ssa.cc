@@ -100,7 +100,7 @@ uint64_t modular(uint64_t base,  uint64_t exp,  uint64_t mod)
     uint64_t i;
     uint64_t power = base % mod;
 
-    for (i = 0; i < sizeof(int) * 8; i++) {
+    for (i = 0; i < sizeof(uint64_t) * 8; i++) {
         uint64_t least_sig_bit = 0x00000001 & (exp >> i);
         if (least_sig_bit)
             x = (x * power) % mod;
@@ -114,6 +114,8 @@ uint64_t modular(uint64_t base,  uint64_t exp,  uint64_t mod)
 uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, uint64_t  * sequence, uint64_t text_size, uint64_t r, uint64_t q )
 {
 
+	ssa = min( ssa, text_size ); 
+		
 	uint64_t closest_start = ssa/fp_len;
 	
 	uint64_t end = min( text_size , ssa+ l );
@@ -147,7 +149,7 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 		
 		for(uint64_t i = 0; i<diff; i++)
 		{
-			fp_short =  ( q + ( ( fp_short * r +  sequence[c_start * fp_len + i] ) % q ) )  % q  ;
+			fp_short = ( fp_short * r +  sequence[c_start * fp_len + i] ) % q;
 		}
 		
 	}
@@ -172,14 +174,14 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 				
 		for(uint64_t i = 0; i<diff; i++)
 		{
-			fp_long = ( q  + ( ( fp_long * r +  sequence[c_end * fp_len + i] )  % q ) ) % q ;
+			fp_long = ( fp_long * r +  sequence[c_end * fp_len + i] )  % q  ;
 		}
 	}
 	else fp_long = FP[closest_end-1];
 
 	uint64_t power = modular( r, (end - 1) - (ssa - 1), q) ;
-	uint64_t mult = fp_short * power  % q ;
-	uint64_t fp =  ( q + ( fp_long - mult) ) % q  ;
+	uint64_t mult = fp_short * power ;
+	uint64_t fp =  ( q + ( fp_long - mult % q ) ) % q  ;
 	
 	
 return fp;
@@ -290,7 +292,7 @@ return 0;
 }
 
 
-uint64_t order( vector<uint64_t> * final_ssa, vector<vector<SSA>> * ssa_struct, uint64_t * sequence, uint64_t text_size )
+uint64_t order( vector<uint64_t> * final_ssa, vector<vector<SSA>> * ssa_struct, uint64_t * sequence, uint64_t text_size, string output )
 {
 	vector<SSA> * to_order = new vector<SSA>();
 	
@@ -425,15 +427,19 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<vector<SSA>> * ssa_struct, 
 		}
 	}
 	
+	string suff_lcp = output + ".lcp";
+	string suff_ssa = output + ".ssa";
+	
+	ofstream output_ssa(suff_ssa);
+	
 	for(uint64_t i = 0; i<final_ssa->size(); i++)
-		cout<<final_ssa->at(i)<<" ";
+		output_ssa<<final_ssa->at(i)<<endl;;
 		
-	cout<<endl;
 	
+	ofstream output_lcp(suff_lcp);
 	for(uint64_t i = 0; i<final_lcp->size(); i++)
-		cout<<final_lcp->at(i)<<" ";
+		output_lcp<<final_lcp->at(i)<<endl;
 	
-	cout<<ssa_struct->size()<<endl;
 	delete( ssa_stack );
 
 return 0;
@@ -452,6 +458,8 @@ int main(int argc, char **argv)
 
 	/* Read in sequence file */
  	ifstream seq(argv[1], ios::in | ios::binary);
+ 	
+
  	seq.seekg(0, ios::end);
    	uint64_t file_size = seq.tellg();
    	
@@ -475,6 +483,7 @@ int main(int argc, char **argv)
 		else
 		{	
 			sequence[text_size] =  (int) c; 
+			
 			text_size++;
 		}
 		
@@ -525,31 +534,20 @@ int main(int argc, char **argv)
 	
 	// computing fingerprints
 	uint64_t * FP =  ( uint64_t * ) calloc( fp_blocks , sizeof( uint64_t ) );
-	uint64_t q = 5000298533; // q chosen at random, constant for now
+	uint64_t q = 99999983; // q chosen at random, constant for now
 	srand (time (0));
 	uint64_t r = 2 + (rand() % q-1);
+	//r = 11;
 
-	cout<<" q and r "<<q<<" "<<r<<endl;
 	uint64_t fp = 0;
 	pos = 0;
 	
 	std::chrono::steady_clock::time_point start_total = std::chrono::steady_clock::now();
 	
-	// FP of first block
-	for(uint64_t i = 0; i<fp_len; i++)
+	for(uint64_t i = 0; i<fp_blocks *(text_size/b) ; i++)
 	{
-		fp =  ( q + ( fp * r + sequence[i]  % q ) )  % q ;
-	}
-	FP[0] = fp ;
-	pos++;
+		fp =  (fp * r + sequence[i])  % q  ; 
 	
-	uint64_t fp2 = 0;
-	for(uint64_t i = fp_len; i<fp_blocks *(text_size/b) ; i++)
-	{
-		
-		fp =  ( q + ( fp * r + sequence[i]  % q ) )  % q ; 
-		
-
 		if( i > 0 &&  ( i + 1 ) % fp_len == 0 )
 		{
 			FP[pos] = fp ;
@@ -581,13 +579,13 @@ int main(int argc, char **argv)
 	while( l > 0 )
 	{
 		group( ssa_struct, FP, fp_len, l, sequence, text_size, r, q ); 
-		l = l/2;
-		
+		l = l/2;	
 	}
 	
 	vector<uint64_t> * final_ssa = new vector<uint64_t>();
+
 	
-	order( final_ssa, ssa_struct, sequence, text_size );
+	order( final_ssa, ssa_struct, sequence, text_size, argv[3] );
 	
 	std::chrono::steady_clock::time_point end_total = std::chrono::steady_clock::now();
 	std::cout << endl<<"Time taken "<<std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count() << "[ms]" << std::endl;
@@ -596,4 +594,3 @@ int main(int argc, char **argv)
 	free( sequence );
 	return 0;
 }
-
