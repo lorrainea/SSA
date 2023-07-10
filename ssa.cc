@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <cmath>
+#include "krfp.h"
 
 using namespace std;
 
@@ -93,7 +94,7 @@ void mergeSort(vector<SSA> * array, int l, int r, uint64_t * sequence  )
 	    	merge(array, l, m, r, sequence );
   	}
 }
- 
+
 uint64_t modular(uint64_t base,  uint64_t exp,  uint64_t mod)
 {
     uint64_t x = 1;
@@ -111,15 +112,13 @@ uint64_t modular(uint64_t base,  uint64_t exp,  uint64_t mod)
 }
 
 /* Computing the fingerprint of an SSA */
-uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, uint64_t  * sequence, uint64_t text_size, uint64_t r, uint64_t q )
+uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, uint64_t  * sequence, uint64_t text_size)
 {
 
-	ssa = min( ssa, text_size ); 
+	//ssa = min( ssa, text_size ); 
 		
 	uint64_t closest_start = ssa/fp_len;
-	
 	uint64_t end = min( text_size , ssa+ l );
-	
 	uint64_t closest_end = end/fp_len;	
 	uint64_t fp_short = 0;
 	uint64_t fp_long = 0;
@@ -149,11 +148,11 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 		
 		for(uint64_t i = 0; i<diff; i++)
 		{
-			fp_short = ( fp_short * r +  sequence[c_start * fp_len + i] ) % q;
+			fp_short = karp_rabin_hashing::concat( fp_short, sequence[c_start * fp_len + i], 1);
 		}
 		
 	}
-	else fp_short = FP[closest_start-1];
+	else fp_short = FP[closest_start-1]; 
 
 	if( end %  fp_len  != 0 )
 	{
@@ -174,21 +173,22 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 				
 		for(uint64_t i = 0; i<diff; i++)
 		{
-			fp_long = ( fp_long * r +  sequence[c_end * fp_len + i] )  % q  ;
+			fp_long = karp_rabin_hashing::concat( fp_long, sequence[c_end * fp_len + i] , 1 );
 		}
 	}
 	else fp_long = FP[closest_end-1];
 
-	uint64_t power = modular( r, (end - 1) - (ssa - 1), q) ;
-	uint64_t mult = fp_short * power ;
-	uint64_t fp =  ( q + ( fp_long - mult % q ) ) % q  ;
+	//uint64_t power = modular( 284, (end - 1) - (ssa - 1), 997) ;
+	//uint64_t mult = fp_short * power ;
+	//uint64_t fp =  ( 997 + ( fp_long - mult % 997 ) ) % 997  ;
 	
+	uint64_t fp = karp_rabin_hashing::subtract(fp_long, fp_short, end-ssa);
 	
 return fp;
 }
 
 /* Grouping SSAs according to shared fingerprints */
-uint64_t group( vector<vector<SSA>> * ssa_struct, uint64_t * FP, uint64_t fp_len, uint64_t l, uint64_t * sequence, uint64_t text_size, uint64_t r, uint64_t q )
+uint64_t group( vector<vector<SSA>> * ssa_struct, uint64_t * FP, uint64_t fp_len, uint64_t l, uint64_t * sequence, uint64_t text_size )
 {
 	unordered_map<uint64_t, vector<SSA>> * groups = new unordered_map<uint64_t, vector<SSA>>();
 	
@@ -222,9 +222,11 @@ uint64_t group( vector<vector<SSA>> * ssa_struct, uint64_t * FP, uint64_t fp_len
 				lcp = ssa_struct->at(i).at(0).lcp;
 			}
 			
+		
 			// Find the fingerprint of the suffix and add to hash map
-			uint64_t fp = fingerprint( ssa+lcp, FP, fp_len, l, sequence, text_size, r, q );
-				
+			uint64_t fp = fingerprint( ssa+lcp, FP, fp_len, l, sequence, text_size );
+			
+			
 			if( groups->count( fp ) == 0 )
 				groups->insert(pair<uint64_t, vector<SSA>>(fp, {ssa_struct->at(i).at(j)}));
 			else groups->at( fp ).push_back( ssa_struct->at(i).at(j) );
@@ -252,7 +254,6 @@ uint64_t group( vector<vector<SSA>> * ssa_struct, uint64_t * FP, uint64_t fp_len
 						new_ssa.leaf = it->second.at(k).leaf;
 						new_ssa.ssa = it->second.at(k).ssa;
 						new_ssa.lcp = it->second.at(k).lcp + l;
-						
 						new_inp.push_back( new_ssa );
 							
 					}
@@ -275,7 +276,6 @@ uint64_t group( vector<vector<SSA>> * ssa_struct, uint64_t * FP, uint64_t fp_len
 					original.leaf =  it->second.at(0).leaf;
 					original.ssa =  it->second.at(0).ssa;
 					original.lcp =  it->second.at(0).lcp;
-						
 					ssa_struct->at(i).push_back( original );
 				}
 			}
@@ -433,12 +433,15 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<vector<SSA>> * ssa_struct, 
 	ofstream output_ssa(suff_ssa);
 	
 	for(uint64_t i = 0; i<final_ssa->size(); i++)
-		output_ssa<<final_ssa->at(i)<<endl;;
-		
+	{
+		output_ssa<<final_ssa->at(i)<<endl;
+	}
 	
 	ofstream output_lcp(suff_lcp);
 	for(uint64_t i = 0; i<final_lcp->size(); i++)
+	{
 		output_lcp<<final_lcp->at(i)<<endl;
+	}
 	
 	delete( ssa_stack );
 
@@ -459,7 +462,7 @@ int main(int argc, char **argv)
 	/* Read in sequence file */
  	ifstream seq(argv[1], ios::in | ios::binary);
  	
-
+	
  	seq.seekg(0, ios::end);
    	uint64_t file_size = seq.tellg();
    	
@@ -482,8 +485,7 @@ int main(int argc, char **argv)
 			continue;
 		else
 		{	
-			sequence[text_size] =  (int) c; 
-			
+			sequence[text_size] = static_cast<uint64_t>(c); 
 			text_size++;
 		}
 		
@@ -526,7 +528,7 @@ int main(int argc, char **argv)
 	}
 	suff_list.close();	
 	
-
+	karp_rabin_hashing::init();
 	uint64_t b = ssa_list->size();
 	uint64_t l = pow(2, (uint64_t) log2(text_size));
 	uint64_t fp_blocks = (text_size/(text_size/b)) ;
@@ -534,9 +536,9 @@ int main(int argc, char **argv)
 	
 	// computing fingerprints
 	uint64_t * FP =  ( uint64_t * ) calloc( fp_blocks , sizeof( uint64_t ) );
-	uint64_t q = 99999983; // q chosen at random, constant for now
+	//uint64_t q = 99999983; // q chosen at random, constant for now
 	srand (time (0));
-	uint64_t r = 2 + (rand() % q-1);
+	//uint64_t r = 2 + (rand() % q-1);
 	//r = 11;
 
 	uint64_t fp = 0;
@@ -546,8 +548,8 @@ int main(int argc, char **argv)
 	
 	for(uint64_t i = 0; i<fp_blocks *(text_size/b) ; i++)
 	{
-		fp =  (fp * r + sequence[i])  % q  ; 
-	
+		//fp =  (fp * r + sequence[i])  % q  ; 
+		fp = karp_rabin_hashing::concat(fp, sequence[i], 1);
 		if( i > 0 &&  ( i + 1 ) % fp_len == 0 )
 		{
 			FP[pos] = fp ;
@@ -578,7 +580,7 @@ int main(int argc, char **argv)
 	
 	while( l > 0 )
 	{
-		group( ssa_struct, FP, fp_len, l, sequence, text_size, r, q ); 
+		group( ssa_struct, FP, fp_len, l, sequence, text_size ); 
 		l = l/2;	
 	}
 	
@@ -588,9 +590,10 @@ int main(int argc, char **argv)
 	order( final_ssa, ssa_struct, sequence, text_size, argv[3] );
 	
 	std::chrono::steady_clock::time_point end_total = std::chrono::steady_clock::now();
-	std::cout << endl<<"Time taken "<<std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count() << "[ms]" << std::endl;
+	std::cout<<"Time taken "<<std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count() << "[ms]" << std::endl;
 	
 
 	free( sequence );
 	return 0;
 }
+

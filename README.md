@@ -2,6 +2,6 @@ Run using:
 
 ./ssa <sequence_file> <suffix_list> <output_filename>
 
-Note that currently nothing is output to output_filename but a temporary file name can be used. For example:
+Two output files are output, namely; <output_filename>.ssa which contains the sparse suffix array and <output_filename>.lcp which contains the lcp values between consecutive suffixes. The tool can be run using the following example, where the files out.ssa and out.lcp will be output:
 
 ./ssa text suffixes out
