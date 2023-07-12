@@ -147,31 +147,24 @@ std::uint64_t concat(
       tmp + right_hash, mersenne_prime_exponent);
   return ret;
 }
+
 /*std::uint64_t power(const std::uint64_t k)
 {
 	return pow((uint64_t)2,k);
 }*/
-std::uint64_t subtract(const std::uint64_t long_hash, const std::uint64_t short_hash, const std::uint64_t right_len)
-{
+
+std::uint64_t subtract(
+    const std::uint64_t long_hash,
+    const std::uint64_t short_hash,
+    const std::uint64_t right_len) {
   const std::uint64_t pow = pow_mod_mersenne(
       hash_variable, right_len, mersenne_prime_exponent);
-     
   const std::uint64_t tmp = mul_mod_mersenne(
-      short_hash, pow, mersenne_prime_exponent);       
-    
-  if(long_hash < tmp)
-  {                
-     const std::uint64_t ret = mod_mersenne(
-      long_hash-tmp-8, mersenne_prime_exponent);          
-	  return ret;	
-  }
-  else
-  { const std::uint64_t ret = mod_mersenne(
-      long_hash-tmp, mersenne_prime_exponent);
-    
-	  return ret;
-  }
-  return 0;
+      short_hash, pow, mersenne_prime_exponent);
+  const std::uint64_t p = ((std::uint64_t)1 << mersenne_prime_exponent) - 1;
+  return (long_hash >= tmp) ?
+    (long_hash - tmp) :
+    ((long_hash + p) - tmp);
 }
 
 //=============================================================================

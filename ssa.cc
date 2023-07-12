@@ -26,169 +26,102 @@ struct SSA
 };
 
 
-void mergeSort(vector<SSA> * array, int l, int r, uint64_t * sequence );
-
-// Merge two subarrays L and M into array
-void merge(vector<SSA> * array, int p, int q, int r, uint64_t * sequence) 
+auto compare(uint64_t * sequence)
 {
-  	int n1 = q - p + 1;	
-	int n2 = r - q;
-	
-	vector<SSA> * L = new vector<SSA>();
-	vector<SSA> * M = new vector<SSA>();
-
-	for (int i = 0; i < n1; i++)
-		L->push_back(array->at(p + i));
-	for (int j = 0; j < n2; j++)
-		M->push_back(array->at(q + 1 + j));
-
-	int i, j, k;
-	i = 0;
-	j = 0;
-	k = p;
-
-	while (i < n1 && j < n2) 
+	return [sequence](SSA a, SSA b) 
 	{
-		if ( sequence[ L->at(i).leaf_value+L->at(i).lcp ]  <= sequence[ M->at(j).leaf_value+M->at(j).lcp ]  ) 
-		{
-			array->at(k) = L->at(i);
-			i++;
-		} 
-		else 
-		{
-	      		array->at(k) = M->at(j);
-	      		j++;
-	      		
-	    	}
-	   	k++;
-	}
-
-	while (i < n1) 
-	{
-	 	array->at(k) = L->at(i);
-	 	i++;
-  		k++;
-	}
-
-
-	while (j < n2) 
-	{
-	  	array->at(k) = M->at(j);
-	    	j++;
-		k++;
-	}
-	
-	delete( L );
-	delete( M );
+		return sequence[ a.leaf_value+a.lcp ]  <= sequence[ b.leaf_value+b.lcp ];
+	};
 }
 
-
-void mergeSort(vector<SSA> * array, int l, int r, uint64_t * sequence  ) 
-{
-	if (l < r) 
-	{
-    		int m = l + (r - l) / 2 ;
-    		
-		mergeSort(array, l, m, sequence );
-	    	mergeSort(array, m + 1, r, sequence );
-	    	merge(array, l, m, r, sequence );
-  	}
-}
-
-uint64_t modular(uint64_t base,  uint64_t exp,  uint64_t mod)
-{
-    uint64_t x = 1;
-    uint64_t i;
-    uint64_t power = base % mod;
-
-    for (i = 0; i < sizeof(uint64_t) * 8; i++) {
-        uint64_t least_sig_bit = 0x00000001 & (exp >> i);
-        if (least_sig_bit)
-            x = (x * power) % mod;
-        power = (power * power) % mod;
-    }
-
-    return x;
-}
 
 /* Computing the fingerprint of an SSA */
-uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, uint64_t  * sequence, uint64_t text_size)
+uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, uint64_t  * sequence, uint64_t text_size, uint64_t b )
 {
 
-	//ssa = min( ssa, text_size ); 
-		
-	uint64_t closest_start = ssa/fp_len;
-	uint64_t end = min( text_size , ssa+ l );
-	uint64_t closest_end = end/fp_len;	
-	uint64_t fp_short = 0;
-	uint64_t fp_long = 0;
+	uint64_t fp = 0;
 	
-	//cout<<" closest start "<<closest_start<<endl;
 	
-	if( ssa == 0 )
+	if( l < text_size / b )
 	{
-		fp_short = 0;
+	
+		for(uint64_t i = ssa; i<ssa+l; i++)
+		{
+			fp =  karp_rabin_hashing::concat( fp, sequence[i], 1 );
+		}
+	
 	}
-	else if( ssa % fp_len  !=  0 )
+	else
 	{
-		uint64_t diff = ssa - ( fp_len * closest_start ) ;
-		uint64_t c_start = 0;
+		uint64_t closest_start = ssa/fp_len;
+		uint64_t end = min( text_size , ssa+ l );
+		uint64_t closest_end = end/fp_len;	
+		uint64_t fp_short = 0;
+		uint64_t fp_long = 0;
 		
-		if( closest_start == 0 )
-		{ 
+		//cout<<" closest start "<<closest_start<<endl;
+		
+		if( ssa == 0 )
+		{
 			fp_short = 0;
-			c_start = 0;
 		}
-		else
+		else if( ssa % fp_len  !=  0 )
 		{
-			fp_short = FP[closest_start-1];
-			c_start = closest_start;
+			uint64_t diff = ssa - ( fp_len * closest_start ) ;
+			uint64_t c_start = 0;
+			
+			if( closest_start == 0 )
+			{ 
+				fp_short = 0;
+				c_start = 0;
+			}
+			else
+			{
+				fp_short = FP[closest_start-1];
+				c_start = closest_start;
+			}
+			
+			
+			for(uint64_t i = 0; i<diff; i++)
+			{
+				fp_short = karp_rabin_hashing::concat( fp_short, sequence[c_start * fp_len + i], 1);
+			}
+			
 		}
-		
-		
-		for(uint64_t i = 0; i<diff; i++)
-		{
-			fp_short = karp_rabin_hashing::concat( fp_short, sequence[c_start * fp_len + i], 1);
-		}
-		
-	}
-	else fp_short = FP[closest_start-1]; 
+		else fp_short = FP[closest_start-1]; 
 
-	if( end %  fp_len  != 0 )
-	{
-		uint64_t diff = end - ( (fp_len * closest_end  ) );
-		uint64_t c_end = 0;
-		
-		
-		if( closest_end == 0 )
+		if( end %  fp_len  != 0 )
 		{
-			fp_long = 0;
-			c_end = 0;
+			uint64_t diff = end - ( (fp_len * closest_end  ) );
+			uint64_t c_end = 0;
+			
+			
+			if( closest_end == 0 )
+			{
+				fp_long = 0;
+				c_end = 0;
+			}
+			else 
+			{
+				fp_long = FP[closest_end-1];
+				c_end = closest_end ;
+			}
+					
+			for(uint64_t i = 0; i<diff; i++)
+			{
+				fp_long = karp_rabin_hashing::concat( fp_long, sequence[c_end * fp_len + i] , 1 );
+			}
 		}
-		else 
-		{
-			fp_long = FP[closest_end-1];
-			c_end = closest_end ;
-		}
-				
-		for(uint64_t i = 0; i<diff; i++)
-		{
-			fp_long = karp_rabin_hashing::concat( fp_long, sequence[c_end * fp_len + i] , 1 );
-		}
-	}
-	else fp_long = FP[closest_end-1];
+		else fp_long = FP[closest_end-1];
 
-	//uint64_t power = modular( 284, (end - 1) - (ssa - 1), 997) ;
-	//uint64_t mult = fp_short * power ;
-	//uint64_t fp =  ( 997 + ( fp_long - mult % 997 ) ) % 997  ;
-	
-	uint64_t fp = karp_rabin_hashing::subtract(fp_long, fp_short, end-ssa);
+		fp = karp_rabin_hashing::subtract(fp_long, fp_short, end-ssa);
+	}
 	
 return fp;
 }
 
 /* Grouping SSAs according to shared fingerprints */
-uint64_t group( vector<vector<SSA>> * ssa_struct, uint64_t * FP, uint64_t fp_len, uint64_t l, uint64_t * sequence, uint64_t text_size )
+uint64_t group( vector<vector<SSA>> * ssa_struct, uint64_t * FP, uint64_t fp_len, uint64_t l, uint64_t * sequence, uint64_t text_size, uint64_t b )
 {
 	unordered_map<uint64_t, vector<SSA>> * groups = new unordered_map<uint64_t, vector<SSA>>();
 	
@@ -224,7 +157,7 @@ uint64_t group( vector<vector<SSA>> * ssa_struct, uint64_t * FP, uint64_t fp_len
 			
 		
 			// Find the fingerprint of the suffix and add to hash map
-			uint64_t fp = fingerprint( ssa+lcp, FP, fp_len, l, sequence, text_size );
+			uint64_t fp = fingerprint( ssa+lcp, FP, fp_len, l, sequence, text_size, b );
 			
 			
 			if( groups->count( fp ) == 0 )
@@ -332,8 +265,8 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<vector<SSA>> * ssa_struct, 
 		
 		}
 		
-		// Merge-sort all of the nodes		
-		mergeSort( to_order, 0, to_order->size()-1, sequence );
+		// Sort all of the nodes	
+		sort( to_order->begin(), to_order->end(), compare(sequence));	
 		
 		ssa_struct->at(i).clear();
 		
@@ -352,7 +285,7 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<vector<SSA>> * ssa_struct, 
 	
 
 	stack<pair<uint64_t,uint64_t>> * ssa_stack = new stack<pair<uint64_t,uint64_t>>();
-	//vector<uint64_t> * final_ssa = new vector<uint64_t>();
+	
 	vector<uint64_t> * final_lcp = new vector<uint64_t>();
 	
 	uint64_t i = 0;
@@ -536,11 +469,6 @@ int main(int argc, char **argv)
 	
 	// computing fingerprints
 	uint64_t * FP =  ( uint64_t * ) calloc( fp_blocks , sizeof( uint64_t ) );
-	//uint64_t q = 99999983; // q chosen at random, constant for now
-	srand (time (0));
-	//uint64_t r = 2 + (rand() % q-1);
-	//r = 11;
-
 	uint64_t fp = 0;
 	pos = 0;
 	
@@ -548,7 +476,6 @@ int main(int argc, char **argv)
 	
 	for(uint64_t i = 0; i<fp_blocks *(text_size/b) ; i++)
 	{
-		//fp =  (fp * r + sequence[i])  % q  ; 
 		fp = karp_rabin_hashing::concat(fp, sequence[i], 1);
 		if( i > 0 &&  ( i + 1 ) % fp_len == 0 )
 		{
@@ -580,7 +507,7 @@ int main(int argc, char **argv)
 	
 	while( l > 0 )
 	{
-		group( ssa_struct, FP, fp_len, l, sequence, text_size ); 
+		group( ssa_struct, FP, fp_len, l, sequence, text_size, b ); 
 		l = l/2;	
 	}
 	
@@ -592,8 +519,8 @@ int main(int argc, char **argv)
 	std::chrono::steady_clock::time_point end_total = std::chrono::steady_clock::now();
 	std::cout<<"Time taken "<<std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count() << "[ms]" << std::endl;
 	
-
 	free( sequence );
+	
 	return 0;
 }
 

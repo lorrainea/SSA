@@ -4,7 +4,7 @@ CC=     g++
  
 CFLAGS= -D_USE_64 -msse3 -g -O3 -fomit-frame-pointer -funroll-loops 
  
-LFLAGS= -std=c++17 -O3 -DNDEBUG -I ./libsdsl/include/ -I ./ankerl/ -I ./BigInt/include/ -L ./libsdsl/lib/ -lsdsl -ldivsufsort -ldivsufsort64 -Wl,-rpath=$(PWD)/libsdsl/li
+LFLAGS= -std=c++17 -O3 -DNDEBUG
 
 EXE=    ssa
  
