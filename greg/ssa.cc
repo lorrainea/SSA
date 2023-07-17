@@ -68,11 +68,7 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 		
 		//cout<<" closest start "<<closest_start<<endl;
 		
-		if( ssa == 0 )
-		{
-			fp_short = 0;
-		}
-		else if( ssa % fp_len  !=  0 )
+		if( ssa % fp_len  !=  0 )
 		{
 			const uint64_t diff = ssa - ( fp_len * closest_start ) ;
 			uint64_t c_start = 0;
@@ -96,6 +92,10 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 			}
 			
 		}
+		else if( ssa == 0 )
+		{
+			fp_short = 0;
+		} 
 		else fp_short = FP[closest_start-1]; 
 
 		if( end %  fp_len  != 0 )
@@ -104,16 +104,17 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 			uint64_t c_end = 0;
 			
 			
-			if( closest_end == 0 )
-			{
-				fp_long = 0;
-				c_end = 0;
-			}
-			else 
+			if(closest_end!=0)
 			{
 				fp_long = FP[closest_end-1];
 				c_end = closest_end ;
 			}
+			else
+			{
+				fp_long = 0;
+				c_end = 0;
+			}
+		
 			const auto x=c_end*fp_len; 
 
 			for(uint64_t i = 0; i<diff; i++)
