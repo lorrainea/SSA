@@ -114,10 +114,11 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 				fp_long = FP[closest_end-1];
 				c_end = closest_end ;
 			}
-					
+			const auto x=c_end*fp_len; 
+
 			for(uint64_t i = 0; i<diff; i++)
 			{
-				fp_long = karp_rabin_hashing::concat( fp_long, sequence[c_end * fp_len + i] , 1 );
+				fp_long = karp_rabin_hashing::concat( fp_long, sequence[x + i] , 1 );
 			}
 		}
 		else fp_long = FP[closest_end-1];
