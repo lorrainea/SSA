@@ -100,7 +100,7 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 
 		if( end %  fp_len  != 0 )
 		{
-			uint64_t diff = end - ( (fp_len * closest_end  ) );
+			const uint64_t diff = end - ( (fp_len * closest_end  ) );
 			uint64_t c_end = 0;
 			
 			
