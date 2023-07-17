@@ -3,8 +3,8 @@ import string
 import sys
 import os
 
-seq_len = 1000 #can be changed
-num_suffixes = 50 #can be changed
+seq_len = 20 #can be changed
+num_suffixes = 10 #can be changed
 runs = 1 #can be changed
 
 for i in range(0, runs):
@@ -15,9 +15,11 @@ for i in range(0, runs):
 	seq_file.write(sequence)
 	seq_file.close()
 
+	suffixes = random.sample(range(0, seq_len), num_suffixes)
+	
 	suff_file = open("suffixes", "w")
-	for i in range(0, num_suffixes):
-		suff_file.write(str(random.randrange(seq_len)))
+	for i in range(0, len(suffixes)):
+		suff_file.write(str(suffixes[i]))
 		suff_file.write("\n")
 		
 	suff_file.close()
