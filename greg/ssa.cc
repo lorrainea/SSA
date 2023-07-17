@@ -14,6 +14,7 @@
 #include <cmath>
 #include "krfp.h"
 #include "unordered_dense.h"
+#include <assert.h>
 
 #define DEBUG false
 
@@ -44,19 +45,10 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 {
 
 	uint64_t fp = 0;
-
-	if( l <= text_size / b )
-	{ 
-	    const auto msz=(text_size >= ssa+l) ? ssa+l : text_size; 
-
-		//for(uint64_t i = ssa; i<min( text_size, ssa+l ); i++)
-		for(uint64_t i=ssa; i< msz; ++i)
-		{
-			fp =  karp_rabin_hashing::concat( fp, sequence[i], 1 );
-		}
+    
+    
 	
-	}
-	else
+	if(l > fp_len)
 	{
 		//ssa = min( ssa, text_size );
 		
@@ -127,6 +119,17 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 		
 		fp = karp_rabin_hashing::subtract(fp_long, fp_short, end-ssa);
 
+	}
+	else 
+	{ 
+	    const auto msz=(text_size >= ssa+l) ? ssa+l : text_size; 
+
+		//for(uint64_t i = ssa; i<min( text_size, ssa+l ); i++)
+		for(uint64_t i=ssa; i< msz; ++i)
+		{
+			fp =  karp_rabin_hashing::concat( fp, sequence[i], 1 );
+		}
+	
 	}
 	
 	if(DEBUG)
