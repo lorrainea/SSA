@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <cmath>
+#include "unordered_dense.h"
 #include "krfp.h"
 
 using namespace std;
@@ -25,27 +26,24 @@ struct SSA
 	uint64_t leaf_value;
 };
 
-
-auto compare(uint64_t * sequence)
+auto compare(unsigned char * sequence )
 {
 	return [sequence](SSA a, SSA b) 
 	{
-		return sequence[ a.leaf_value+a.lcp ]  <= sequence[ b.leaf_value+b.lcp ];
+		return sequence[ a.leaf_value+a.lcp ] <= sequence[ b.leaf_value+b.lcp ];
 	};
 }
 
-
 /* Computing the fingerprint of an SSA */
-uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, uint64_t  * sequence, uint64_t text_size, uint64_t b )
+uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char  * sequence, uint64_t text_size, uint64_t b )
 {
 
 	uint64_t fp = 0;
 	
-	
-	if( l < text_size / b )
+	if( l <= text_size / b )
 	{
 	
-		for(uint64_t i = ssa; i<ssa+l; i++)
+		for(uint64_t i = ssa; i<min( text_size, ssa+l ); i++)
 		{
 			fp =  karp_rabin_hashing::concat( fp, sequence[i], 1 );
 		}
@@ -53,13 +51,13 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 	}
 	else
 	{
+		ssa = min( ssa, text_size );
+		
 		uint64_t closest_start = ssa/fp_len;
 		uint64_t end = min( text_size , ssa+ l );
 		uint64_t closest_end = end/fp_len;	
 		uint64_t fp_short = 0;
 		uint64_t fp_long = 0;
-		
-		//cout<<" closest start "<<closest_start<<endl;
 		
 		if( ssa == 0 )
 		{
@@ -113,17 +111,19 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 			}
 		}
 		else fp_long = FP[closest_end-1];
-
+		
+		
 		fp = karp_rabin_hashing::subtract(fp_long, fp_short, end-ssa);
+
 	}
 	
 return fp;
 }
 
 /* Grouping SSAs according to shared fingerprints */
-uint64_t group( vector<vector<SSA>> * ssa_struct, uint64_t * FP, uint64_t fp_len, uint64_t l, uint64_t * sequence, uint64_t text_size, uint64_t b )
+uint64_t group( vector<vector<SSA>> * ssa_struct, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b )
 {
-	unordered_map<uint64_t, vector<SSA>> * groups = new unordered_map<uint64_t, vector<SSA>>();
+	auto groups = ankerl::unordered_dense::map<uint64_t, vector<SSA>>();
 	
 	uint64_t size = ssa_struct->size();
 	
@@ -160,40 +160,41 @@ uint64_t group( vector<vector<SSA>> * ssa_struct, uint64_t * FP, uint64_t fp_len
 			uint64_t fp = fingerprint( ssa+lcp, FP, fp_len, l, sequence, text_size, b );
 			
 			
-			if( groups->count( fp ) == 0 )
-				groups->insert(pair<uint64_t, vector<SSA>>(fp, {ssa_struct->at(i).at(j)}));
-			else groups->at( fp ).push_back( ssa_struct->at(i).at(j) );
+			if( groups.count( fp ) == 0 )
+				groups[ fp ] =  {ssa_struct->at(i).at(j)};
+			else groups[ fp ].push_back( ssa_struct->at(i).at(j) );
 			
 		}
 		
 		// Only create new node if some nodes were grouped together
-		if( groups->size() != original_size )
+		if( groups.size() != original_size )
 		{
 			ssa_struct->at(i).clear();
 			
-			for( auto it = groups->begin(); it!= groups->end(); it++)
+			for (auto const& [key, val] : groups)
 			{
-				if( it->second.size() > 1 )
+				if( val.size() > 1 )
 				{
-					// these nodes have been grouped together, place them in a new node and remove them from
-					// current node and replace with new node ID.
-				
-					uint64_t original_lcp = it->second.at(0).lcp;
+					// these nodes have been grouped together, place them in a new node and remove them from current node and replace
+					// with new node ID.
+						
+					uint64_t original_lcp = val.at(0).lcp;
 					
 					vector<SSA> new_inp;
-					for( int64_t k=0; k<it->second.size(); k++)
+					for( int64_t k=0; k<val.size(); k++)
 					{
 						SSA new_ssa = {};
-						new_ssa.leaf = it->second.at(k).leaf;
-						new_ssa.ssa = it->second.at(k).ssa;
-						new_ssa.lcp = it->second.at(k).lcp + l;
+						new_ssa.leaf = val.at(k).leaf;
+						new_ssa.ssa = val.at(k).ssa;
+						new_ssa.lcp = val.at(k).lcp + l;
+						
 						new_inp.push_back( new_ssa );
 							
 					}
 					ssa_struct->push_back( new_inp );
 					
 					
-					// create new internal node and add to original ssa vector
+					//create new internal node and add to original ssa vector
 					SSA new_internal = {};
 					new_internal.leaf = 0;
 					//new_internal.leaf_value = it->second.at(0).ssa;
@@ -201,55 +202,52 @@ uint64_t group( vector<vector<SSA>> * ssa_struct, uint64_t * FP, uint64_t fp_len
 					new_internal.lcp = original_lcp;
 						
 					ssa_struct->at(i).push_back( new_internal );
+					// now put new node value back into original.
 				}
 				else
 				{
-					// Nodes that were not grouped together can just be re-inserted into the array
 					SSA original = {};
-					original.leaf =  it->second.at(0).leaf;
-					original.ssa =  it->second.at(0).ssa;
-					original.lcp =  it->second.at(0).lcp;
+					original.leaf =  val.at(0).leaf;
+					original.ssa =  val.at(0).ssa;
+					original.lcp =  val.at(0).lcp;
+						
 					ssa_struct->at(i).push_back( original );
+				
+			
 				}
 			}
 			
 		}
-		groups->clear();
+		groups.clear();
 	}
 	
-	delete( groups );
 	
 
-	
 return 0;
 }
 
 
-uint64_t order( vector<uint64_t> * final_ssa, vector<vector<SSA>> * ssa_struct, uint64_t * sequence, uint64_t text_size, string output )
+uint64_t order( vector<vector<SSA>> * ssa_struct, unsigned char * sequence, uint64_t text_size, string output )
 {
 	vector<SSA> * to_order = new vector<SSA>();
+	
+	string suff_lcp = output + ".lcp";
+	string suff_ssa = output + ".ssa";
+	
+	ofstream output_ssa(suff_ssa);
+	ofstream output_lcp(suff_lcp);
 	
 	for(uint64_t i = 0; i<ssa_struct->size(); i++)
 	{
 		// Depth first search to identify leaf/ssa values for each internal node
 		for(uint64_t j = 0; j<ssa_struct->at(i).size(); j++)
 		{
-			SSA new_ssa = {};
-			
 			if( ssa_struct->at(i).at(j).leaf == 1 )
 			{
-				new_ssa.ssa = ssa_struct->at(i).at(j).ssa;
-				new_ssa.lcp = ssa_struct->at(i).at(j).lcp;
-				new_ssa.leaf = ssa_struct->at(i).at(j).leaf;
-				new_ssa.leaf_value = ssa_struct->at(i).at(j).ssa;
-				
+				ssa_struct->at(i).at(j).leaf_value = ssa_struct->at(i).at(j).ssa;	
 			}
 			else
 			{
-				new_ssa.ssa = ssa_struct->at(i).at(j).ssa;
-				new_ssa.lcp = ssa_struct->at(i).at(j).lcp;
-				new_ssa.leaf = ssa_struct->at(i).at(j).leaf;
-				
 				SSA ssa_pos =  ssa_struct->at( ssa_struct->at(i).at(j).ssa ).at(0);
 				
 				while( ssa_pos.leaf == 0 )
@@ -257,28 +255,14 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<vector<SSA>> * ssa_struct, 
 					ssa_pos = ssa_struct->at( ssa_pos.ssa ).at(0);	
 				}
 				
-				new_ssa.leaf_value = ssa_pos.ssa;
+				ssa_struct->at(i).at(j).leaf_value = ssa_pos.ssa;
 			} 	
-			
-			to_order->push_back( new_ssa );
-		
 		
 		}
 		
 		// Sort all of the nodes	
-		sort( to_order->begin(), to_order->end(), compare(sequence));	
-		
-		ssa_struct->at(i).clear();
-		
-		for(uint64_t j = 0; j<to_order->size(); j++)
-		{
-			
-			ssa_struct->at(i).push_back( to_order->at(j) );
-		
-		}
-		
-		to_order->clear();
-	
+		sort( ssa_struct->at(i).begin(), ssa_struct->at(i).end(), compare(sequence));	
+
 	}
 	
 	delete( to_order );
@@ -299,9 +283,8 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<vector<SSA>> * ssa_struct, 
 		{
 			if( ssa_struct->at(i).at(j).leaf == 1 )
 			{
-				
-				final_ssa->push_back( ssa_struct->at(i).at(j).ssa );
-				final_lcp->push_back( ssa_struct->at(i).at(j).lcp );
+				output_ssa<<ssa_struct->at(i).at(j).ssa<<endl;
+				output_lcp<<ssa_struct->at(i).at(j).lcp<<endl;
 			}
 			else
 			{
@@ -327,13 +310,12 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<vector<SSA>> * ssa_struct, 
 			if( leaf == true )
 				lcp = ssa_struct->at(i).at(j).lcp;
 			
-			final_lcp->push_back( lcp);
-				
-			leaf = true;
-			final_ssa->push_back( ssa_struct->at(i).at(j).ssa );
-		
-			j++;
+			output_lcp<<lcp<<endl;
+			output_ssa<<ssa_struct->at(i).at(j).ssa<<endl;
 			
+			leaf = true;
+			
+			j++;
 			
 			while( ssa_stack->size() > 0 && j > ssa_struct->at(i).size()-1 )
 			{
@@ -360,22 +342,6 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<vector<SSA>> * ssa_struct, 
 		}
 	}
 	
-	string suff_lcp = output + ".lcp";
-	string suff_ssa = output + ".ssa";
-	
-	ofstream output_ssa(suff_ssa);
-	
-	for(uint64_t i = 0; i<final_ssa->size(); i++)
-	{
-		output_ssa<<final_ssa->at(i)<<endl;
-	}
-	
-	ofstream output_lcp(suff_lcp);
-	for(uint64_t i = 0; i<final_lcp->size(); i++)
-	{
-		output_lcp<<final_lcp->at(i)<<endl;
-	}
-	
 	delete( ssa_stack );
 
 return 0;
@@ -400,7 +366,7 @@ int main(int argc, char **argv)
    	uint64_t file_size = seq.tellg();
    	
    	uint64_t text_size = 0;
-   	uint64_t * sequence =  ( uint64_t * ) calloc( file_size , sizeof( uint64_t ) );
+   	unsigned char * sequence =  ( unsigned char * ) calloc( file_size , sizeof( unsigned char ) );
    	
 	char c = 0;
 	seq.seekg (0, ios::beg);
@@ -408,7 +374,10 @@ int main(int argc, char **argv)
 	
 	
 	if( file_size == 0 )
+	{
 		cout<<"Empty sequence file"<<endl;
+		return 1;
+	}
 		
 	for (uint64_t i = 0; i < file_size; i++)
 	{
@@ -418,29 +387,33 @@ int main(int argc, char **argv)
 			continue;
 		else
 		{	
-			sequence[text_size] = static_cast<uint64_t>(c); 
+			sequence[text_size] = static_cast<int>(c); 
 			text_size++;
 		}
 		
 	}
 	seq.close();
 	
-
  	/* Read in list of sparse suffixes */
   	ifstream suff_list(argv[2], ios::in | ios::binary);
   	suff_list.seekg(0, ios::end);
   	file_size = suff_list.tellg();
    
-  	vector<uint64_t> * ssa_list = new vector<uint64_t>();
- 	vector<uint64_t> * slcp_list = new vector<uint64_t>();
- 	
+ 	vector<vector<SSA>> * ssa_struct = new vector<vector<SSA>>();
+	
  	
  	c = 0;
 	string line="";
 	suff_list.seekg (0, ios::beg);
+	uint64_t b = 0;
 	
 	if( file_size == 0 )
+	{
 		cout<<"Empty suffixes list"<<endl;
+		return 1;
+	}
+	
+	vector<SSA> initial;
 	
 	for (uint64_t i = 0; i < file_size; i++)
 	{
@@ -448,21 +421,33 @@ int main(int argc, char **argv)
 		
 		if( ( char) c == '\n' || ( char) c == ' ' )
 		{
-			ssa_list->push_back(stoi(line));
+		
+			SSA in = {};
+			in.ssa = stoi(line);
 			
-			slcp_list->push_back(0);
+			in.leaf = 1;
+
 			
+			if( stoi(line) >= text_size )
+			{
+				cout<<"Suffix list contains a suffix larger than sequence length"<<endl;
+				return 1;
+			}	
+			
+			in.lcp = 0;
+			initial.push_back(in);
+			
+			b++;
 			line = "";
 			
 		}	
 		else line += c;
-		
-		
 	}
 	suff_list.close();	
 	
+	ssa_struct->push_back( initial );
+	
 	karp_rabin_hashing::init();
-	uint64_t b = ssa_list->size();
 	uint64_t l = pow(2, (uint64_t) log2(text_size));
 	uint64_t fp_blocks = (text_size/(text_size/b)) ;
 	uint64_t fp_len = text_size / b;
@@ -477,7 +462,7 @@ int main(int argc, char **argv)
 	for(uint64_t i = 0; i<fp_blocks *(text_size/b) ; i++)
 	{
 		fp = karp_rabin_hashing::concat(fp, sequence[i], 1);
-		if( i > 0 &&  ( i + 1 ) % fp_len == 0 )
+		if( ( i + 1 ) % fp_len == 0 )
 		{
 			FP[pos] = fp ;
 			pos++;
@@ -485,42 +470,23 @@ int main(int argc, char **argv)
 		
 		
 	}
-
-	vector<vector<SSA>> * ssa_struct = new vector<vector<SSA>>();
-	
-	vector<SSA> initial;
-	
-	for(uint64_t i = 0; i<ssa_list->size(); i++ )
-	{	
-		SSA in = {};
-		in.ssa = ssa_list->at(i);
-		in.lcp = slcp_list->at(i);
-		in.leaf = 1;
-		initial.push_back(in);
-		
-	}
-	
-	ssa_struct->push_back( initial );
-	
-	delete( ssa_list );
-	delete( slcp_list );
 	
 	while( l > 0 )
 	{
-		group( ssa_struct, FP, fp_len, l, sequence, text_size, b ); 
-		l = l/2;	
+		group( ssa_struct, FP, fp_len, l, sequence, text_size, b );
+		l = l/2;
 	}
 	
-	vector<uint64_t> * final_ssa = new vector<uint64_t>();
+	order( ssa_struct, sequence, text_size, argv[3] );
 
-	
-	order( final_ssa, ssa_struct, sequence, text_size, argv[3] );
+	delete( ssa_struct );
+	free( sequence );
+	free( FP );
 	
 	std::chrono::steady_clock::time_point end_total = std::chrono::steady_clock::now();
 	std::cout<<"Time taken "<<std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count() << "[ms]" << std::endl;
-	
-	free( sequence );
-	
+
+
 	return 0;
 }
 
