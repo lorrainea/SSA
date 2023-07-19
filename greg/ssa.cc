@@ -43,24 +43,17 @@ auto compare(unsigned char * sequence, vector<uint64_t> * A, uint64_t lcp )
 /* Computing the fingerprint of an SSA */
 uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char  * sequence, uint64_t text_size, uint64_t b )
 {
-
 	uint64_t fp = 0;
-    
-    
-	
+
 	if(l > fp_len)
 	{
-		//ssa = min( ssa, text_size );
-		
 		uint64_t closest_start = ssa/fp_len;
-		uint64_t end =  text_size >= ssa+ l ? ssa+l : text_size;
-		uint64_t closest_end = end/fp_len;	
+		uint64_t end =  text_size >= ssa + l ? ssa+l : text_size;
+		uint64_t closest_end = min(b,end/fp_len);	
 		uint64_t fp_short = 0;
 		uint64_t fp_long = 0;
 		
-		//cout<<" closest start "<<closest_start<<endl;
-		
-		if( ssa % fp_len  !=  0 )
+		if( (ssa - 1) % fp_len  !=  0 )
 		{
 			const uint64_t diff = ssa - ( fp_len * closest_start ) ;
 			uint64_t c_start = 0;
@@ -90,7 +83,7 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 		} 
 		else fp_short = FP[closest_start-1]; 
 
-		if( end %  fp_len  != 0 )
+		if( (end - 1) %  fp_len  != 0 )
 		{
 			const uint64_t diff = end - ( (fp_len * closest_end  ) );
 			uint64_t c_end = 0;
@@ -114,22 +107,22 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 				fp_long = karp_rabin_hashing::concat( fp_long, sequence[x + i] , 1 );
 			}
 		}
-		else fp_long = FP[closest_end-1];
-		
+		else
+		{ 
+			//cout << ssa+l << endl; 
+			//cout << end << endl; 
+			//cout << fp_len << endl; 
+			//cout << closest_end << endl; 
+			fp_long = FP[closest_end-1];
+		}
 		
 		fp = karp_rabin_hashing::subtract(fp_long, fp_short, end-ssa);
 
 	}
 	else 
 	{ 
-	    const auto msz=(text_size >= ssa+l) ? ssa+l : text_size; 
-
-		//for(uint64_t i = ssa; i<min( text_size, ssa+l ); i++)
-		for(uint64_t i=ssa; i< msz; ++i)
-		{
-			fp =  karp_rabin_hashing::concat( fp, sequence[i], 1 );
-		}
-	
+	    	const auto msz=(text_size >= ssa+l) ? ssa+l : text_size; 
+		for(uint64_t i=ssa; i< msz; ++i)	fp =  karp_rabin_hashing::concat( fp, sequence[i], 1 );
 	}
 	
 	if(DEBUG)
@@ -155,7 +148,7 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 	
 		const uint64_t s = (*B)[i].L.size();
 		
-	    for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end();)
+	    for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end(); ++it)
 	    {
 			
 			uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size, b );
@@ -170,8 +163,10 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 			{
 				groups[fp].push_back(*it);
 			}
-			it=((*B)[i].L).erase(it);
+			//it=((*B)[i].L).erase(it);
 		}
+		((*B)[i].L).clear();
+                  
 		
 		for( auto it = groups.begin(); it!= groups.end(); ++it)
 		{	
@@ -299,8 +294,6 @@ return 0;
 int main(int argc, char **argv)
 {
 
-	
-
 	if( argc < 4 )
  	{
         	cout<<"Check arguments!\n";
@@ -313,15 +306,13 @@ int main(int argc, char **argv)
  	
 	
  	seq.seekg(0, ios::end);
-   	uint64_t file_size = seq.tellg();
-   	
+   	int file_size = seq.tellg();
+        	
    	uint64_t text_size = 0;
    	unsigned char * sequence =  ( unsigned char * ) calloc( file_size , sizeof( unsigned char ) );
    	
 	char c = 0;
 	seq.seekg (0, ios::beg);
-	uint64_t pos = 1;
-	
 	
 	if( file_size == 0 )
 	{
@@ -344,8 +335,10 @@ int main(int argc, char **argv)
 	}
 	seq.close();
 	//return 0;
-	//cout<<text_size<<endl;
- 	/* Read in list of sparse suffixes */
+	
+	cout<<"Text length n = " << text_size << endl;
+ 	
+	/* Read in list of sparse suffixes */
   	ifstream suff_list(argv[2], ios::in | ios::binary);
   	suff_list.seekg(0, ios::end);
   	file_size = suff_list.tellg();
@@ -390,37 +383,27 @@ int main(int argc, char **argv)
 	
 	karp_rabin_hashing::init();
 	uint64_t b = ssa_list->size();
-	//uint64_t l = pow(2, (uint64_t) log2(text_size));
+	cout<<"Number of suffixes b = " << b << endl;
 	uint64_t l = 1ULL << static_cast<uint64_t>(log2(text_size));
-
-	//uint64_t fp_blocks = (text_size/(text_size/b)) ;
-	uint64_t fp_len = text_size / b;
+	uint64_t s = b;
+	uint64_t fp_len = text_size / s;
 	
 	// computing fingerprints
-	uint64_t * FP =  ( uint64_t * ) calloc( b , sizeof( uint64_t ) );
+	uint64_t * FP =  ( uint64_t * ) calloc( s , sizeof( uint64_t ) );
 	uint64_t fp = 0;
-	pos = 0;
 	
 	std::chrono::steady_clock::time_point start_total = std::chrono::steady_clock::now();
 	
-	uint64_t cnt=0;
-    for(uint64_t i=0;i<text_size;++i)
-    {
-		fp = karp_rabin_hashing::concat(fp, sequence[i], 1);
-		cnt++;
-		if(cnt%fp_len==0) //start new block
-		{
-			FP[pos]=fp;
-			pos++;
-		}
-		
+	cout<<"Preprocessing starts"<<endl;
+	uint64_t i = 0;
+    	for(uint64_t j = 0; j < s; ++j )
+    	{
+		for (uint64_t k = 0; k < fp_len; k ++ )	fp = karp_rabin_hashing::concat(fp, sequence[i+k], 1);
+		FP[j]=fp;
+		i += fp_len;
 	}
-	if(DEBUG)
-	{		for(int i=0;i<pos;++i)
-		{
-			cout<<i<<"->"<<FP[i]<<endl;
-		}
-	}
+	cout<<"Preprocessing ends"<<endl;
+
 	vector<SSA> * B = new vector<SSA>();
 	vector<uint64_t> * A = new vector<uint64_t>();
 	vector<uint64_t> L;
@@ -445,29 +428,24 @@ int main(int argc, char **argv)
 	delete( slcp_list );
 	
 
+	cout<<"Grouping starts"<<endl;
 	while( l > 0 )
 	{
 		group( B, A, FP, fp_len, l, sequence, text_size, b, m );
 		l=l>>1;
 	}
+	cout<<"Grouping ends"<<endl;
 	
 	free( FP );
 	
 	vector<uint64_t> * final_ssa = new vector<uint64_t>();
 	vector<uint64_t> * final_lcp = new vector<uint64_t>();
 	
-	//cout<<" ORDERING "<<endl;
-	
-	//for(uint64_t i = 0; i < B->size(); i++ )
-	//{
-		//cout<<"i "<<i<<endl;
-		//cout<<B->at(i).lcp<<endl;
-		
-	//	for(uint64_t j = 0; j<B->at(i).L.size(); j++)
-	//		cout<<B->at(i).L.at(j)<<endl;
-		
-//	}
+	cout<<"Sorting starts"<<endl;
+
 	order( final_ssa, final_lcp, B, A, sequence, text_size, b);	
+	
+	cout<<"Sorting ends"<<endl;
 	
 	std::chrono::steady_clock::time_point end_total = std::chrono::steady_clock::now();
 	std::cout<<"Time taken "<<std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count() << "[ms]" << std::endl;
@@ -480,19 +458,19 @@ int main(int argc, char **argv)
 	
 	ofstream output_ssa(suff_ssa);
 	
-	cout<<"SSA:\n";
+	//cout<<"SSA:\n";
 
 	for(uint64_t i = 0; i<final_ssa->size(); i++)
 	{
 		output_ssa<<final_ssa->at(i)<<endl;
-		cout<<(*final_ssa)[i]<<" ";
+		if(DEBUG)	cout<<(*final_ssa)[i]<<" ";
 	}
-	cout<<"\nSLCP:\n";
+	//cout<<"\nSLCP:\n";
 	ofstream output_lcp(suff_lcp);
 	for(uint64_t i = 0; i<final_lcp->size(); i++)
 	{
 		output_lcp<<final_lcp->at(i)<<endl;
-		cout<<(*final_lcp)[i]<<" ";
+		if(DEBUG)	cout<<(*final_lcp)[i]<<" ";
 	}
 	cout<<endl;
 	delete( final_lcp );
