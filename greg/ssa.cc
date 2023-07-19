@@ -33,14 +33,77 @@ auto compare(unsigned char * sequence, vector<uint64_t> * A, uint64_t lcp )
 {
 	return [sequence, A, lcp](uint64_t a, uint64_t b) 
 	{
-		
-		
 		return sequence[ A->at(a)+lcp ] <= sequence[ A->at(b)+lcp ];
 	};
 }
 
-	
 /* Computing the fingerprint of an SSA */
+uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char  * sequence, uint64_t text_size, uint64_t b )
+{
+	uint64_t fp = 0;
+	uint64_t ssa_end = (text_size >= ssa+l) ? ssa+l : text_size; //this is the end of the substring we are interested in PLUS 1
+
+	if( l > fp_len )
+	{
+		uint64_t fp_short = 0;
+		if( ssa == 0 ) // then there is not short fragment before the substring
+		{
+			; // do nothing
+		} 
+		else if( ssa % fp_len  !=  0 ) // we are in-between two stored prefixes
+		{
+			uint64_t prefix = ssa / fp_len; // this is the prefix we are in but we have something stored on the left
+			uint64_t start = 0;
+			
+			if( prefix != 0 )
+			{
+				fp_short = FP[prefix - 1];
+				start = prefix * fp_len;
+			}
+			
+			for(uint64_t i = start; i<ssa; i++)	fp_short = karp_rabin_hashing::concat( fp_short, sequence[i], 1);
+			
+		}
+		else 	// we have the fp_short stored and we read it from FP
+		{	
+			uint64_t prefix = ssa / fp_len;
+			fp_short = FP[prefix - 1];
+		}	
+
+		uint64_t fp_long = 0;
+
+		if( ssa_end % fp_len  != 0 )
+		{
+			
+                        uint64_t prefix = ssa_end / fp_len; // this is the prefix we are in but we have something stored on the left
+                        uint64_t start = 0;
+
+                        if( prefix != 0 )
+                        {
+                                fp_long = FP[prefix - 1];
+                                start = prefix * fp_len;
+                        }
+
+			for(uint64_t i = start; i< ssa_end; i++)	fp_long = karp_rabin_hashing::concat( fp_long, sequence[i] , 1 );
+		}
+		else
+		{ 
+			uint64_t prefix = ssa_end / fp_len;
+			fp_long = FP[prefix - 1];
+		}
+		
+		fp = karp_rabin_hashing::subtract(fp_long, fp_short, ssa_end - ssa);
+
+	}
+	else 
+	{
+		for(uint64_t i=ssa; i< ssa_end; ++i)	fp =  karp_rabin_hashing::concat( fp, sequence[i], 1 );
+	}
+	
+	return fp;
+}
+	
+/* Computing the fingerprint of an SSA 
 uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char  * sequence, uint64_t text_size, uint64_t b )
 {
 	uint64_t fp = 0;
@@ -48,12 +111,17 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 	if(l > fp_len)
 	{
 		uint64_t closest_start = ssa/fp_len;
+		if ( closest_start == 0 ) closest_start++;
 		uint64_t end =  text_size >= ssa + l ? ssa+l : text_size;
 		uint64_t closest_end = min(b,end/fp_len);	
 		uint64_t fp_short = 0;
 		uint64_t fp_long = 0;
 		
-		if( (ssa - 1) % fp_len  !=  0 )
+		if( ssa == 0 )
+		{
+			fp_short = 0;
+		} 
+		else if( (ssa - 1) % fp_len  !=  0 )
 		{
 			const uint64_t diff = ssa - ( fp_len * closest_start ) ;
 			uint64_t c_start = 0;
@@ -77,11 +145,18 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 			}
 			
 		}
-		else if( ssa == 0 )
-		{
-			fp_short = 0;
-		} 
-		else fp_short = FP[closest_start-1]; 
+		else 	
+		{	
+			//cout << l << endl;
+                	//cout << ssa << endl;
+                	//cout << ssa+l << endl;
+                	//cout << fp_len << endl;
+                	//cout << closest_start << endl;
+                	//cout << end << endl;
+                	//cout << closest_end << endl;
+
+			fp_short = FP[closest_start-1];
+		}	
 
 		if( (end - 1) %  fp_len  != 0 )
 		{
@@ -120,7 +195,7 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 
 	}
 	else 
-	{ 
+	{
 	    	const auto msz=(text_size >= ssa+l) ? ssa+l : text_size; 
 		for(uint64_t i=ssa; i< msz; ++i)	fp =  karp_rabin_hashing::concat( fp, sequence[i], 1 );
 	}
@@ -131,7 +206,7 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 		cout<<"| "<<fp<<endl;
 	}
 return fp;
-}
+}*/
 
 /* Grouping SSAs according to shared fingerprints */
 uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m )
@@ -145,8 +220,7 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 	
 	for(uint64_t i = 0; i<Bsz; ++i)
 	{
-	
-		const uint64_t s = (*B)[i].L.size();
+	    const uint64_t s = (*B)[i].L.size();
 		
 	    for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end(); ++it)
 	    {
@@ -163,13 +237,11 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 			{
 				groups[fp].push_back(*it);
 			}
-			//it=((*B)[i].L).erase(it);
-		}
-		((*B)[i].L).clear();
+	     }
+	     ((*B)[i].L).clear();
                   
-		
-		for( auto it = groups.begin(); it!= groups.end(); ++it)
-		{	
+	     for( auto it = groups.begin(); it!= groups.end(); ++it)
+	     {	
 			const auto itsz=it->second.size();
 
 			if( itsz >= 2 )
@@ -184,7 +256,7 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 		   		for(auto &it2 : it->second)
 					new_ssa.L.push_back(it2);				
 				
-				new_ssa.lcp =  (*B)[i].lcp + l; //greg
+				new_ssa.lcp = (*B)[i].lcp + l; //greg
 				
 				B_prime->push_back( new_ssa );
 				
@@ -205,18 +277,16 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 				(*B)[i].L.push_back( (it->second)[0] );
 			}
 		}
-	
 		
 		groups.clear();
 	}
-		const uint64_t Bpsz=B_prime->size();
-		for(uint64_t i = 0; i<Bpsz; i++)	
-			B->push_back( (*B_prime)[i] );
 		
+	const uint64_t Bpsz=B_prime->size();
+	for(uint64_t i = 0; i<Bpsz; i++)	B->push_back( (*B_prime)[i] );
+		
+	delete( B_prime);
 	
-	delete( B_prime);	
-	
-return 0;
+	return 0;
 }
 
 
@@ -304,7 +374,6 @@ int main(int argc, char **argv)
 	/* Read in sequence file */
  	ifstream seq(argv[1], ios::in | ios::binary);
  	
-	
  	seq.seekg(0, ios::end);
    	int file_size = seq.tellg();
         	
@@ -334,7 +403,6 @@ int main(int argc, char **argv)
 		
 	}
 	seq.close();
-	//return 0;
 	
 	cout<<"Text length n = " << text_size << endl;
  	
@@ -345,7 +413,6 @@ int main(int argc, char **argv)
    
   	vector<uint64_t> * ssa_list = new vector<uint64_t>();
  	vector<uint64_t> * slcp_list = new vector<uint64_t>();
- 	
  	
  	c = 0;
 	string line="";
@@ -385,8 +452,10 @@ int main(int argc, char **argv)
 	uint64_t b = ssa_list->size();
 	cout<<"Number of suffixes b = " << b << endl;
 	uint64_t l = 1ULL << static_cast<uint64_t>(log2(text_size));
+	uint64_t fp_len = text_size / b;
+	if ( (text_size - fp_len * b) > text_size/b ) fp_len += 1; 
+	cout<<"Block length = "<<fp_len<<endl;
 	uint64_t s = b;
-	uint64_t fp_len = text_size / s;
 	
 	// computing fingerprints
 	uint64_t * FP =  ( uint64_t * ) calloc( s , sizeof( uint64_t ) );
@@ -401,6 +470,7 @@ int main(int argc, char **argv)
 		for (uint64_t k = 0; k < fp_len; k ++ )	fp = karp_rabin_hashing::concat(fp, sequence[i+k], 1);
 		FP[j]=fp;
 		i += fp_len;
+		if ( i + fp_len > text_size ) break;
 	}
 	cout<<"Preprocessing ends"<<endl;
 
