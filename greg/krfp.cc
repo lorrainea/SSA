@@ -61,7 +61,7 @@ std::uint64_t mersenne_prime_exponent;
 // Return (a * b) mod p, where p = (2^k) - 1.
 // Requires a, b <= 2^k. Tested for k = 1, .., 63.
 //=============================================================================
-std::uint64_t mul_mod_mersenne(
+inline std::uint64_t mul_mod_mersenne(
     const std::uint64_t a,
     const std::uint64_t b,
     const std::uint64_t k) {
@@ -81,7 +81,7 @@ std::uint64_t mul_mod_mersenne(
 // Works for any a in [0..2^64).
 // Tested for k = 1, .., 63.
 //=============================================================================
-std::uint64_t mod_mersenne(
+inline std::uint64_t mod_mersenne(
     std::uint64_t a,
     const std::uint64_t k) {
   std::uint64_t p = ((std::uint64_t)1 << k) -  (uint64_t) 1;
@@ -116,7 +116,7 @@ std::uint64_t rand_mod_mersenne(const std::uint64_t k) {
 //=============================================================================
 // Return (a^n) mod p, where p = (2^k) - 1.
 //=============================================================================
-std::uint64_t  pow_mod_mersenne(
+/*std::uint64_t  pow_mod_mersenne(
     const std::uint64_t a,
     std::uint64_t n,
     const std::uint64_t k) {
@@ -129,7 +129,27 @@ std::uint64_t  pow_mod_mersenne(
     n >>=  (uint64_t) 1;
   }
   return ret;
+}*/
+
+
+
+inline std::uint64_t pow_mod_mersenne(const std::uint64_t a, std::uint64_t n, const std::uint64_t k){
+
+	static constexpr uint64_t w = 61;	
+	static constexpr uint64_t q = (uint64_t(1)<<w)-1;
+	uint64_t x = 1;
+	if(n==0) return x;
+	n = n % w;
+	uint64_t l_bits = n;		//how many bits exit from left and enter from right
+	uint64_t r_bits = w-l_bits;
+	uint64_t MASK = (uint64_t(1) << r_bits)-1;
+	uint64_t R = x&MASK;	//right part
+	x = x >> r_bits;
+	R = R << l_bits;
+	auto result = x | R;
+	return result%q;
 }
+
 
 //=============================================================================
 // Given Karp-Rabin hashes of two substrings, return
@@ -172,7 +192,7 @@ std::uint64_t subtract(
 //=============================================================================
 void init() {
   mersenne_prime_exponent = 61; //do not change this
-  hash_variable = rand_mod_mersenne(mersenne_prime_exponent);
+  hash_variable = 2; //rand_mod_mersenne(mersenne_prime_exponent);
 }
 }
 
