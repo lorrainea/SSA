@@ -219,7 +219,8 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 	
 	auto groups = ankerl::unordered_dense::segmented_map<uint64_t, uint64_t >();
 	vector<SSA> * B_prime = new vector<SSA>();
-	
+	(*B_prime).reserve(b); //greg
+
 	const auto Bsz = B->size();
 	
 	for(uint64_t i = 0; i<Bsz; ++i )
@@ -297,9 +298,11 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 		vec.clear();
 	}
 		
-	const uint64_t Bpsz = B_prime->size();
-	for(uint64_t i = 0; i<Bpsz; i++)	B->push_back( (*B_prime)[i] );
-		
+	//const uint64_t Bpsz = B_prime->size();
+	//for(uint64_t i = 0; i<Bpsz; i++)	B->push_back( (*B_prime)[i] );
+	
+	B->insert(std::end(*B), std::begin(*B_prime), std::end(*B_prime));
+
 	delete( B_prime);
 	
 	return 0;
@@ -489,6 +492,8 @@ int main(int argc, char **argv)
 	cout<<"Preprocessing ends"<<endl;
 
 	vector<SSA> * B = new vector<SSA>();
+	(*B).reserve(b); //greg
+
 	vector<uint64_t> * A = new vector<uint64_t>();
 	vector<uint64_t> L;
 
