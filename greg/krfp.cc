@@ -116,7 +116,7 @@ std::uint64_t rand_mod_mersenne(const std::uint64_t k) {
 //=============================================================================
 // Return (a^n) mod p, where p = (2^k) - 1.
 //=============================================================================
-/*std::uint64_t  pow_mod_mersenne(
+std::uint64_t  pow_mod_mersenne(
     const std::uint64_t a,
     std::uint64_t n,
     const std::uint64_t k) {
@@ -129,11 +129,11 @@ std::uint64_t rand_mod_mersenne(const std::uint64_t k) {
     n >>=  (uint64_t) 1;
   }
   return ret;
-}*/
+}
 
 
 
-inline std::uint64_t pow_mod_mersenne(const std::uint64_t a, std::uint64_t n, const std::uint64_t k){
+/*inline std::uint64_t pow_mod_mersenne(const std::uint64_t a, std::uint64_t n, const std::uint64_t k){
 
 	static constexpr uint64_t w = 61;	
 	static constexpr uint64_t q = (uint64_t(1)<<w)-1;
@@ -149,7 +149,7 @@ inline std::uint64_t pow_mod_mersenne(const std::uint64_t a, std::uint64_t n, co
 	auto result = x | R;
 	return result%q;
 }
-
+*/
 
 //=============================================================================
 // Given Karp-Rabin hashes of two substrings, return
@@ -192,7 +192,7 @@ std::uint64_t subtract(
 //=============================================================================
 void init() {
   mersenne_prime_exponent = 61; //do not change this
-  hash_variable = 2; //rand_mod_mersenne(mersenne_prime_exponent);
+  hash_variable = rand_mod_mersenne(mersenne_prime_exponent);
 }
 }
 
