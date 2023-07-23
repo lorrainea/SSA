@@ -272,8 +272,8 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 	    hash_total += end - start;
 	     }
 	    double start = gettime();
-	     ((*B)[i].L).clear();
 	     groups.clear();
+	     ((*B)[i].L).clear();
 	    double end = gettime();
 	    hash_total += end - start;
 	     
