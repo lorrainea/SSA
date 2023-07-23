@@ -23,7 +23,7 @@ using namespace std;
 struct SSA
 {
 	
-	uint64_t m;
+	//uint64_t m;
 	uint64_t lcp;
 	vector<uint64_t> L;
 };
@@ -276,7 +276,7 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 			{
 				m++; 
 				SSA new_ssa;
-				new_ssa.m = m;
+				//new_ssa.m = m;
 		
 		   		//for(auto &it2 : it->second)
 				//	new_ssa.L.push_back(it2);				
@@ -505,7 +505,7 @@ int main(int argc, char **argv)
 	}
 	
 	SSA initial;
-	initial.m = ssa_list->size();
+	//initial.m = ssa_list->size();
 	initial.lcp = 0;
 	initial.L = L;
 	
