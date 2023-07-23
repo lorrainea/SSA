@@ -2,9 +2,9 @@ MF=     Makefile.gcc
  
 CC=     g++
  
-CFLAGS= -D_USE_64 -msse3 -O3 -fomit-frame-pointer -funroll-loops 
+CFLAGS= -D_USE_64 -msse3 -Ofast -fomit-frame-pointer -funroll-loops -march=native  
  
-LFLAGS= -std=c++17 -O3 -DNDEBUG
+LFLAGS= -std=c++17 -Ofast -DNDEBUG
 
 EXE=    ssa
  

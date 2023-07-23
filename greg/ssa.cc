@@ -15,10 +15,11 @@
 #include "krfp.h"
 #include "unordered_dense.h"
 #include <assert.h>
-
+#include <sys/time.h>
 #define DEBUG false
 
 using namespace std;
+
 
 struct SSA
 {
@@ -28,6 +29,17 @@ struct SSA
 	vector<uint64_t> L;
 };
 
+double gettime( void )
+{
+    struct timeval ttime;
+    gettimeofday( &ttime , 0 );
+    return ttime.tv_sec + ttime.tv_usec * 0.000001;
+};
+double prep_total;
+double hash_total;
+double kr_total;
+double gr_total;
+double order_total;
 
 auto compare(unsigned char * sequence, vector<uint64_t> * A, uint64_t lcp )
 {
@@ -233,7 +245,11 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 	    for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end(); ++it)
 	    {
 			
+	    double start = gettime();
 			uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size );
+	    double end = gettime();
+	    kr_total += end - start;
+	    start = gettime();
 			auto itx = groups.find(fp);
 			if(itx == groups.end())
 			{
@@ -252,11 +268,16 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 				//groups[fp].push_back(*it);
 				vec[itx->second].push_back(*it);
 			}
+	    end = gettime();
+	    hash_total += end - start;
 	     }
+	    double start = gettime();
 	     ((*B)[i].L).clear();
 	     groups.clear();
+	    double end = gettime();
+	    hash_total += end - start;
 	     
-	     
+	     start = gettime();
 	     //for( auto it = groups.begin(); it!= groups.end(); ++it)
 	     for( uint64_t j = 0; j < k; j++ )
 	     {	
@@ -296,14 +317,19 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 			}
 		}
 		vec.clear();
+	    	end = gettime();
+	    	gr_total += end - start;
 	}
 		
 	//const uint64_t Bpsz = B_prime->size();
 	//for(uint64_t i = 0; i<Bpsz; i++)	B->push_back( (*B_prime)[i] );
 	
+	double start = gettime();
 	B->insert(std::end(*B), std::begin(*B_prime), std::end(*B_prime));
-
 	delete( B_prime);
+	double end = gettime();
+	gr_total += end - start;
+
 	
 	return 0;
 }
@@ -480,6 +506,8 @@ int main(int argc, char **argv)
 	
 	std::chrono::steady_clock::time_point start_total = std::chrono::steady_clock::now();
 	
+	prep_total = 0;
+	double start = gettime();
 	cout<<"Preprocessing starts"<<endl;
 	uint64_t i = 0;
     	for(uint64_t j = 0; j < s; ++j )
@@ -490,6 +518,8 @@ int main(int argc, char **argv)
 		if ( i + fp_len > text_size ) break;
 	}
 	cout<<"Preprocessing ends"<<endl;
+	double end = gettime();
+	prep_total = end - start;
 
 	vector<SSA> * B = new vector<SSA>();
 	(*B).reserve(b); //greg
@@ -516,6 +546,9 @@ int main(int argc, char **argv)
 	delete( ssa_list );
 	delete( slcp_list );
 	
+	hash_total = 0;
+	kr_total = 0;
+	gr_total = 0;
 	cout<<"Grouping starts"<<endl;
 	while( l > 0 )
 	{
@@ -532,12 +565,21 @@ int main(int argc, char **argv)
 	
 	cout<<"Sorting starts"<<endl;
 
+	order_total = 0;
+	start = gettime();
 	order( final_ssa, final_lcp, B, A, sequence, text_size, b);	
+	end = gettime();
+	order_total = end - start;
 	
 	cout<<"Sorting ends"<<endl;
 	
 	std::chrono::steady_clock::time_point end_total = std::chrono::steady_clock::now();
 	std::cout<<"Time taken "<<std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count() << "[ms]" << std::endl;
+	std::cout<<"Time taken by preprocessing "<<prep_total << "[s]" << std::endl;
+	std::cout<<"Time taken by hashing "<<hash_total << "[s]" << std::endl;
+	std::cout<<"Time taken by fingerprints "<<kr_total << "[s]" << std::endl;
+	std::cout<<"Time taken by grouping "<<gr_total << "[s]" << std::endl;
+	std::cout<<"Time taken by ordering "<<order_total << "[s]" << std::endl;
 
 	string output = argv[3];
 	
