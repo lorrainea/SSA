@@ -24,17 +24,32 @@ for i in range(0, runs):
 		
 	suff_file.close()
 	
+	print("RUNNING GREG")
 	run_greg = r'../greg/./ssa text suffixes ../greg/out'
 	os.system(run_greg)
 	
+	print("RUNNING ACCURATE")
 	run_acc = r'./acc_ssa text suffixes out'
 	os.system(run_acc)
 	
+	print("RUNNING RK-LCE")
+	run_rk_lce = r'../rk-lce/./sa-rk text ../rk-lce/out suffixes'
+	os.system(run_rk_lce)
+	
+	
+	print("COMPARING GREG AND SDSL")
 	run_diff_ssa = r'diff out_accurate.ssa ../greg/out.ssa'	
 	os.system(run_diff_ssa)
 	
 	run_diff_lcp = r'diff out_accurate.lcp ../greg/out.lcp'	
 	os.system(run_diff_lcp)
+	
+	print("COMPARING GREG AND RK-LCE")
+	run_diff_ssa_rk_lce = r'diff ../greg/out.ssa ../rk-lce/out_rk_lce.ssa'	
+	os.system(run_diff_ssa_rk_lce)
+	
+	run_diff_lcp_rk_lce = r'diff ../greg/out.lcp ../rk-lce/out_rk_lce.lcp'	
+	os.system(run_diff_lcp_rk_lce)
 	
 	
 	#run_lorraine = r'.././ssa text suffixes ../out'
