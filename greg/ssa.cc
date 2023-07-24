@@ -119,117 +119,8 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
         return fp;
     }
 
-/* Computing the fingerprint of an SSA 
-uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char  * sequence, uint64_t text_size, uint64_t b )
-{
-	uint64_t fp = 0;
-
-	if(l > fp_len)
-	{
-		uint64_t closest_start = ssa/fp_len;
-		if ( closest_start == 0 ) closest_start++;
-		uint64_t end =  text_size >= ssa + l ? ssa+l : text_size;
-		uint64_t closest_end = min(b,end/fp_len);	
-		uint64_t fp_short = 0;
-		uint64_t fp_long = 0;
-		
-		if( ssa == 0 )
-		{
-			fp_short = 0;
-		} 
-		else if( (ssa - 1) % fp_len  !=  0 )
-		{
-			const uint64_t diff = ssa - ( fp_len * closest_start ) ;
-			uint64_t c_start = 0;
-			
-			if( closest_start != 0 )
-			{
-				fp_short = FP[closest_start-1];
-				c_start = closest_start;
-			}
-			else
-			{ 
-				fp_short = 0;
-				c_start = 0;
-			}
-			
-			
-			const auto x=c_start*fp_len; 
-			for(uint64_t i = 0; i<diff; i++)
-			{
-				fp_short = karp_rabin_hashing::concat( fp_short, sequence[x + i], 1);
-			}
-			
-		}
-		else 	
-		{	
-			//cout << l << endl;
-                	//cout << ssa << endl;
-                	//cout << ssa+l << endl;
-                	//cout << fp_len << endl;
-                	//cout << closest_start << endl;
-                	//cout << end << endl;
-                	//cout << closest_end << endl;
-
-			fp_short = FP[closest_start-1];
-		}	
-
-		if( (end - 1) %  fp_len  != 0 )
-		{
-			const uint64_t diff = end - ( (fp_len * closest_end  ) );
-			uint64_t c_end = 0;
-			
-			
-			if(closest_end!=0)
-			{
-				fp_long = FP[closest_end-1];
-				c_end = closest_end ;
-			}
-			else
-			{
-				fp_long = 0;
-				c_end = 0;
-			}
-		
-			const auto x=c_end*fp_len; 
-
-			for(uint64_t i = 0; i<diff; i++)
-			{
-				fp_long = karp_rabin_hashing::concat( fp_long, sequence[x + i] , 1 );
-			}
-		}
-		else
-		{ 
-			//cout << ssa+l << endl; 
-			//cout << end << endl; 
-			//cout << fp_len << endl; 
-			//cout << closest_end << endl; 
-			fp_long = FP[closest_end-1];
-		}
-		
-		fp = karp_rabin_hashing::subtract(fp_long, fp_short, end-ssa);
-
-	}
-	else 
-	{
-	    	const auto msz=(text_size >= ssa+l) ? ssa+l : text_size; 
-		for(uint64_t i=ssa; i< msz; ++i)	fp =  karp_rabin_hashing::concat( fp, sequence[i], 1 );
-	}
-	
-	if(DEBUG)
-	{	for(uint64_t x=ssa; x<ssa+l;++x)
-			cout<<sequence[x];
-		cout<<"| "<<fp<<endl;
-	}
-return fp;
-}*/
-//New group
-
 uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m )
 {
-	//unordered_map<uint64_t, vector<uint64_t>> groups; //= new unordered_map<uint64_t, vector<uint64_t>>();
-	//auto groups = ankerl::unordered_dense::segmented_map<uint64_t, vector<uint64_t> >();
-
     	vector<SSA> * B_prime = new vector<SSA>();
 	(*B_prime).reserve(b); //greg
 
@@ -241,124 +132,67 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 		uint64_t k = 0;	
 		vector<vector<uint64_t>> vec;
 
-		if( s <= b )
+		if( s <= 1500000 )
 		{
-			//then mergesort the vector to group the IDs having the the same fingeprint
-			//INPUT: pairs of id, fingeprints
-			//OUTPUT: vector of vectors, where each vector is a cluster of IDs with the same fingeprint	
+			double start = gettime();
 			vector<pair<uint64_t,uint64_t> > vec_to_sort;
-
 			for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end(); ++it)
 			{
-				double start = gettime();
 				uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size );
-				double end = gettime();
-				kr_total += end - start;
 				vec_to_sort.push_back( make_pair(fp,*it) );
 			}
 
-			double start = gettime();
 			sort(vec_to_sort.begin(),vec_to_sort.end());
-			
-			if(DEBUG)
-			{
-				cout<<"vec_to_sort"<<"\n";
-				for(auto &it : vec_to_sort)
-				{
-					cout<<it.first<<","<<it.second<<" ";
-				}
-				cout<<endl;
-			}
-			
+
 			const auto vsz=vec_to_sort.size();
 			for(uint64_t i=0;i<vsz;++i)
 			{
 				if (i == 0 || (i>0 && vec_to_sort[i].first != vec_to_sort[i - 1].first)) //if we have new group 
 				{
-					//new vector
 					vector<uint64_t> new_vec;		
 					new_vec.push_back(vec_to_sort[i].second);
 					vec.push_back(new_vec);	 //adds into vec a new vector
 					k++;
 				}
-				else
-				{
-					vec.back().push_back(vec_to_sort[i].second); //adds the id into the last added vector in vec
-				}	
+				else	vec.back().push_back(vec_to_sort[i].second); //adds the id into the last added vector in vec
 			}
 			double end = gettime();
-
 			sort_total += end - start;
-			if(DEBUG)
-			{
-				cout<<"Vec:\n";
-				for(auto it=vec.begin();it!=vec.end();++it)
-				{
-					vector<uint64_t> v=*it;
-					for(auto &it2 : v)
-						cout<<it2<<" ";
-					cout<<endl;
-				}
-			}
 		}
 		else
 		{	
-			
+			double start = gettime();
     			auto groups = ankerl::unordered_dense::map<uint64_t, uint64_t >();
 			for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end(); ++it)
 			{
 
-				double start = gettime();
 				uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size );
-				double end = gettime();
-				kr_total += end - start;
-
-				start = gettime();
 				auto itx = groups.find(fp);
 				if(itx == groups.end())
 				{
-					//vector<uint64_t> vec;
-					//vec.push_back(*it);
-					//groups[fp]=vec;
-
 					groups[fp] = k;
 					vector<uint64_t> v;
 					v.push_back(*it);
 					vec.push_back(v);
 					k++;
 				}
-				else
-				{
-					//groups[fp].push_back(*it);
-					vec[itx->second].push_back(*it);
-				}
-				end = gettime();
-				hash_total += end - start;
+				else	vec[itx->second].push_back(*it);
 			}
-
-		double start = gettime();
-
-		groups.clear();
-
-		double end = gettime();
-		hash_total += end - start;
-
+			groups.clear();
+			double end = gettime();
+			hash_total += end - start;
 		}
 
 		double start = gettime();
 		((*B)[i].L).clear();
-	     //for( auto it = groups.begin(); it!= groups.end(); ++it)
+	        
 		for( uint64_t j = 0; j < k; j++ )
 		{	
-			//const auto itsz=it->second.size();
 			const auto itsz=vec[j].size();
 
 			if( itsz == s )
 			{
 				(*B)[i].lcp += l; //greg
-				
-				//for(auto &it2 : (it->second))
-				//	(*B)[i].L.push_back(it2);
 				for(const auto& value: vec[j])	(*B)[i].L.push_back(value);				
 
 			}
@@ -368,20 +202,16 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 				SSA new_ssa;
 				//new_ssa.m = m;
 
-		   		//for(auto &it2 : it->second)
-				//	new_ssa.L.push_back(it2);				
 				for(const auto& value: vec[j])	new_ssa.L.push_back(value);				
 				
 				new_ssa.lcp = (*B)[i].lcp + l; //greg
 				B_prime->push_back( new_ssa );
 				(*B)[i].L.push_back(m);
 
-				//A->push_back( (*A)[ it->second[0] ] );											
 				A->push_back( (*A)[ vec[j][0] ] );											
 			}
 			else if ( itsz == 1 )
 			{
-				//(*B)[i].L.push_back( (it->second)[0] );
 				(*B)[i].L.push_back( vec[j][0] );
 			}
 		}
@@ -389,9 +219,6 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 		double end = gettime();
 		gr_total += end - start;
 	}
-
-	//const uint64_t Bpsz = B_prime->size();
-	//for(uint64_t i = 0; i<Bpsz; i++)	B->push_back( (*B_prime)[i] );
 
 	double start = gettime();
 	B->insert(std::end(*B), std::begin(*B_prime), std::end(*B_prime));
@@ -401,121 +228,6 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 
 	return 0;
 }
-
-/* Grouping SSAs according to shared fingerprints */
- /*   uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m )
-    {
-	//unordered_map<uint64_t, vector<uint64_t>> groups; //= new unordered_map<uint64_t, vector<uint64_t>>();
-	//auto groups = ankerl::unordered_dense::segmented_map<uint64_t, vector<uint64_t> >();
-
-    	auto groups = ankerl::unordered_dense::segmented_map<uint64_t, uint64_t >();
-    	vector<SSA> * B_prime = new vector<SSA>();
-	(*B_prime).reserve(b); //greg
-
-	const auto Bsz = B->size();
-	
-	for(uint64_t i = 0; i<Bsz; ++i )
-	{
-		const uint64_t s = (*B)[i].L.size();
-
-		uint64_t k = 0;	
-		vector<vector<uint64_t>> vec;
-
-		for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end(); ++it)
-		{
-			
-			double start = gettime();
-			uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size );
-			double end = gettime();
-			kr_total += end - start;
-			start = gettime();
-			auto itx = groups.find(fp);
-			if(itx == groups.end())
-			{
-				//vector<uint64_t> vec;
-				//vec.push_back(*it);
-				//groups[fp]=vec;
-
-				groups[fp] = k;
-				vector<uint64_t> v;
-				v.push_back(*it);
-				vec.push_back(v);
-				k++;
-			}
-			else
-			{
-				//groups[fp].push_back(*it);
-				vec[itx->second].push_back(*it);
-			}
-			end = gettime();
-			hash_total += end - start;
-		}
-
-		double start = gettime();
-
-		groups.clear();
-
-		((*B)[i].L).clear();
-		double end = gettime();
-		hash_total += end - start;
-
-		start = gettime();
-	     //for( auto it = groups.begin(); it!= groups.end(); ++it)
-		for( uint64_t j = 0; j < k; j++ )
-		{	
-			//const auto itsz=it->second.size();
-			const auto itsz=vec[j].size();
-
-			if( itsz == s )
-			{
-				(*B)[i].lcp += l; //greg
-				
-				//for(auto &it2 : (it->second))
-				//	(*B)[i].L.push_back(it2);
-				for(const auto& value: vec[j])	(*B)[i].L.push_back(value);				
-
-			}
-		else if( itsz >= 2 )
-		{
-			m++; 
-			SSA new_ssa;
-				//new_ssa.m = m;
-
-		   		//for(auto &it2 : it->second)
-				//	new_ssa.L.push_back(it2);				
-			for(const auto& value: vec[j])	new_ssa.L.push_back(value);				
-				
-				new_ssa.lcp = (*B)[i].lcp + l; //greg
-			B_prime->push_back( new_ssa );
-			(*B)[i].L.push_back(m);
-
-				//A->push_back( (*A)[ it->second[0] ] );											
-			A->push_back( (*A)[ vec[j][0] ] );											
-		}
-		else if ( itsz == 1 )
-		{
-				//(*B)[i].L.push_back( (it->second)[0] );
-			(*B)[i].L.push_back( vec[j][0] );
-		}
-	}
-	vec.clear();
-	end = gettime();
-	gr_total += end - start;
-}
-
-	//const uint64_t Bpsz = B_prime->size();
-	//for(uint64_t i = 0; i<Bpsz; i++)	B->push_back( (*B_prime)[i] );
-
-double start = gettime();
-B->insert(std::end(*B), std::begin(*B_prime), std::end(*B_prime));
-delete( B_prime);
-double end = gettime();
-gr_total += end - start;
-
-
-return 0;
-}
-*/
 
 uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vector<SSA> * B, vector<uint64_t> * A, unsigned char * sequence, uint64_t text_size, uint64_t b )
 {
@@ -758,10 +470,10 @@ int main(int argc, char **argv)
 	std::chrono::steady_clock::time_point end_total = std::chrono::steady_clock::now();
 	std::cout<<"Time taken "<<std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count() << "[ms]" << std::endl;
 	std::cout<<"Time taken by preprocessing "<<prep_total << "[s]" << std::endl;
-	std::cout<<"Time taken by sorting "<<sort_total << "[s]" << std::endl;
-	std::cout<<"Time taken by hashing "<<hash_total << "[s]" << std::endl;
-	std::cout<<"Time taken by fingerprints "<<kr_total << "[s]" << std::endl;
-	std::cout<<"Time taken by grouping "<<gr_total << "[s]" << std::endl;
+	std::cout<<"Time taken by sorting fingerpints "<<sort_total << "[s]" << std::endl;
+	std::cout<<"Time taken by hashing fingeprints "<<hash_total << "[s]" << std::endl;
+	//std::cout<<"Time taken by fingerprints "<<kr_total << "[s]" << std::endl;
+	std::cout<<"Time taken by the rest of grouping "<<gr_total << "[s]" << std::endl;
 	std::cout<<"Time taken by ordering "<<order_total << "[s]" << std::endl;
 
 	string output = argv[3];
