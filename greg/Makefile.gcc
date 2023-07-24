@@ -4,7 +4,7 @@ CC=     g++
  
 CFLAGS= -D_USE_64 -msse3 -Ofast -fomit-frame-pointer -funroll-loops -march=native  
  
-LFLAGS= -std=c++17 -Ofast -DNDEBUG
+LFLAGS= -std=c++17 -DNDEBUG
 
 EXE=    ssa
  
