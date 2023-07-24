@@ -446,7 +446,7 @@ int main(int argc, char **argv)
 	cout<<"Grouping starts"<<endl;
 	while( l > 0 )
 	{
-		cout<< "l: " << l <<" nodes: "<< m <<endl;
+		cout<< "l: " << l <<", nodes: "<< m <<endl;
 		group( B, A, FP, fp_len, l, sequence, text_size, b, m );
 		l=l>>1;
 	}
@@ -476,6 +476,7 @@ int main(int argc, char **argv)
 	std::cout<<" Time taken by the rest of grouping "<<gr_total << "[s]" << std::endl;
 	std::cout<<" Time taken by ordering "<<order_total << "[s]" << std::endl;
 
+	std::cout<<"Writing the output"<< std::endl;
 	string output = argv[3];
 	
 	string suff_lcp = output + ".lcp";
