@@ -468,13 +468,13 @@ int main(int argc, char **argv)
 	cout<<"Sorting ends"<<endl;
 	
 	std::chrono::steady_clock::time_point end_total = std::chrono::steady_clock::now();
-	std::cout<<"Time taken "<<std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count() << "[ms]" << std::endl;
-	std::cout<<"Time taken by preprocessing "<<prep_total << "[s]" << std::endl;
-	std::cout<<"Time taken by sorting fingerpints "<<sort_total << "[s]" << std::endl;
-	std::cout<<"Time taken by hashing fingeprints "<<hash_total << "[s]" << std::endl;
-	//std::cout<<"Time taken by fingerprints "<<kr_total << "[s]" << std::endl;
-	std::cout<<"Time taken by the rest of grouping "<<gr_total << "[s]" << std::endl;
-	std::cout<<"Time taken by ordering "<<order_total << "[s]" << std::endl;
+	std::cout<<"Time taken "<<std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count()/(double)1000 << "[s]" << std::endl;
+	std::cout<<" Time taken by preprocessing "<<prep_total << "[s]" << std::endl;
+	std::cout<<" Time taken by sorting fingerpints "<<sort_total << "[s]" << std::endl;
+	std::cout<<" Time taken by hashing fingeprints "<<hash_total << "[s]" << std::endl;
+	//std::cout<<" Time taken by fingerprints "<<kr_total << "[s]" << std::endl;
+	std::cout<<" Time taken by the rest of grouping "<<gr_total << "[s]" << std::endl;
+	std::cout<<" Time taken by ordering "<<order_total << "[s]" << std::endl;
 
 	string output = argv[3];
 	
