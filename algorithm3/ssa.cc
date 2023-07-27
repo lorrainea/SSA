@@ -46,7 +46,7 @@ auto compare(unsigned char * sequence, vector<uint64_t> * A, uint64_t lcp )
 {
 	return [sequence, A, lcp](uint64_t a, uint64_t b) 
 	{
-		return sequence[ A->at(a)+lcp ] <= sequence[ A->at(b)+lcp ];
+		return sequence[ A->at(a)+lcp ] < sequence[ A->at(b)+lcp ];
 	};
 }
 
