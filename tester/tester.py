@@ -28,6 +28,10 @@ for i in range(0, runs):
 	run_greg = r'../greg/./ssa text suffixes ../greg/out'
 	os.system(run_greg)
 	
+	print("RUNNING ALGORITHM3")
+	run_alg3 = r'../algorithm3/./ssa text suffixes ../algorithm3/out'
+	os.system(run_alg3)
+	
 	print("RUNNING ACCURATE")
 	run_acc = r'./acc_ssa text suffixes out'
 	os.system(run_acc)
@@ -43,6 +47,15 @@ for i in range(0, runs):
 	
 	run_diff_lcp = r'diff out_accurate.lcp ../greg/out.lcp'	
 	os.system(run_diff_lcp)
+	
+	
+	print("COMPARING ALGORITHM3 AND SDSL")
+	run_diff_ssa_alg3 = r'diff out_accurate.ssa ../algorithm3/out.ssa'	
+	os.system(run_diff_ssa_alg3)
+	
+	run_diff_lcp_alg3 = r'diff out_accurate.lcp ../algorithm3/out.lcp'	
+	os.system(run_diff_lcp_alg3)
+	
 	
 	print("COMPARING GREG AND RK-LCE")
 	run_diff_ssa_rk_lce = r'diff ../greg/out.ssa ../rk-lce/out_rk_lce.ssa'	
