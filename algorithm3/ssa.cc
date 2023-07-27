@@ -16,6 +16,8 @@
 #include "unordered_dense.h"
 #include <assert.h>
 #include <sys/time.h>
+#include <numeric>
+#include <memory>
 #define DEBUG false
 
 using namespace std;
@@ -27,6 +29,8 @@ struct SSA
 	//uint64_t m;
 	uint64_t lcp;
 	vector<uint64_t> L;
+
+	 SSA() : lcp(0), L() {}
 };
 
 double gettime( void )
@@ -119,16 +123,16 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
         return fp;
     }
 
-uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m )
+uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m )
 {
     	vector<SSA> * B_prime = new vector<SSA>();
 	(*B_prime).reserve(b); //greg
 
-	const auto Bsz = B->size();
+	const auto Bsz = B.size();
 	
 	for(uint64_t i = 0; i<Bsz; ++i )
 	{
-		const uint64_t s = (*B)[i].L.size();
+		const uint64_t s = (B)[i].L.size();
 		uint64_t k = 0;	
 		vector<vector<uint64_t>> vec;
 
@@ -136,9 +140,9 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 		{
 			double start = gettime();
 			vector<pair<uint64_t,uint64_t> > vec_to_sort;
-			for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end(); ++it)
+			for(auto it=(B)[i].L.begin();it!=(B)[i].L.end(); ++it)
 			{
-				uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size );
+				uint64_t fp = fingerprint( (*A)[(*it)]+(B)[i].lcp, FP, fp_len, l, sequence, text_size );
 				vec_to_sort.push_back( make_pair(fp,*it) );
 			}
 
@@ -163,10 +167,10 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 		{	
 			double start = gettime();
     			auto groups = ankerl::unordered_dense::map<uint64_t, uint64_t >();
-			for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end(); ++it)
+			for(auto it=(B)[i].L.begin();it!=(B)[i].L.end(); ++it)
 			{
 
-				uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size );
+				uint64_t fp = fingerprint( (*A)[(*it)]+(B)[i].lcp, FP, fp_len, l, sequence, text_size );
 				auto itx = groups.find(fp);
 				if(itx == groups.end())
 				{
@@ -184,7 +188,7 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 		}
 
 		double start = gettime();
-		((*B)[i].L).clear();
+		((B)[i].L).clear();
 	        
 		for( uint64_t j = 0; j < k; j++ )
 		{	
@@ -192,8 +196,8 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 
 			if( itsz == s )
 			{
-				(*B)[i].lcp += l; //greg
-				for(const auto& value: vec[j])	(*B)[i].L.push_back(value);				
+				(B)[i].lcp += l; //greg
+				for(const auto& value: vec[j])	(B)[i].L.push_back(value);				
 
 			}
 			else if( itsz >= 2 )
@@ -204,15 +208,15 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 
 				for(const auto& value: vec[j])	new_ssa.L.push_back(value);				
 				
-				new_ssa.lcp = (*B)[i].lcp + l; //greg
+				new_ssa.lcp = (B)[i].lcp + l; //greg
 				B_prime->push_back( new_ssa );
-				(*B)[i].L.push_back(m);
+				(B)[i].L.push_back(m);
 
 				A->push_back( (*A)[ vec[j][0] ] );											
 			}
 			else if ( itsz == 1 )
 			{
-				(*B)[i].L.push_back( vec[j][0] );
+				(B)[i].L.push_back( vec[j][0] );
 			}
 		}
 		vec.clear();
@@ -221,7 +225,7 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 	}
 
 	double start = gettime();
-	B->insert(std::end(*B), std::begin(*B_prime), std::end(*B_prime));
+	B.insert(std::end(B), std::begin(*B_prime), std::end(*B_prime));
 	delete( B_prime);
 	double end = gettime();
 	gr_total += end - start;
@@ -229,20 +233,20 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 	return 0;
 }
 
-uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vector<SSA> * B, vector<uint64_t> * A, unsigned char * sequence, uint64_t text_size, uint64_t b )
+uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vector<SSA> &B, vector<uint64_t> * A, unsigned char * sequence, uint64_t text_size, uint64_t b )
 {
 
-	const uint64_t Bsz=B->size();
+	const uint64_t Bsz=B.size();
 	cout<<" "<<Bsz<<" "<<A->size()<<endl;
 	for(uint64_t i = 0; i<Bsz; i++)
 	{
 		
-		sort((*B)[i].L.begin(), (*B)[i].L.end(), compare(sequence,A,(*B)[i].lcp));
+		sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
 	}
 	if(DEBUG)
 	{
 		cout<<"\n print B:\n";
-		for(auto it : *B)
+		for(auto it : B)
 		{
 			SSA x=(SSA)(it);
 			cout<<"i:";
@@ -276,8 +280,8 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vect
 		
 		if(i>=b) //it is not one of the initial groups
 		{
-			uint64_t lcp = (*B)[i-b].lcp;
-			auto myl=(*B)[i-b].L;
+			uint64_t lcp = (B)[i-b].lcp;
+			auto myl=(B)[i-b].L;
 			
 			
 			for(vector<uint64_t>::reverse_iterator it=myl.rbegin();it!=myl.rend();++it)
@@ -418,8 +422,10 @@ int main(int argc, char **argv)
 	double end = gettime();
 	prep_total = end - start;
 
-	vector<SSA> * B = new vector<SSA>();
+	//vector<SSA> * B = new vector<SSA>();
 	//(*B).reserve(b); //greg
+    vector<SSA> B;
+
 
 	vector<uint64_t> * A = new vector<uint64_t>();
 	
@@ -437,9 +443,13 @@ int main(int argc, char **argv)
 	
 	SSA initial;
 	initial.lcp = 0;
-	initial.L = L;
+	//initial.L=L;
 	
-	B->push_back( initial );
+    initial.L.assign(L.begin(), L.end()); 
+
+	B.push_back( initial );
+
+
 	A->push_back( (*ssa_list)[0] );
 	uint64_t m = ssa_list->size();
 
@@ -471,10 +481,10 @@ int main(int argc, char **argv)
 	for(uint64_t i = 0; i<b; i++)
 	{
 		
-		if( final_lcp->at(i) == next_initial_l || ( i < b-1 && final_lcp->at(i+1) == next_initial_l ) )
+		if( (*final_lcp)[i] == next_initial_l || ( i < b-1 && (*final_lcp)[i+1] == next_initial_l ) )
 		{
 			P->push_back(i);
-			A_prime->push_back(final_ssa->at(i));
+			A_prime->push_back((*final_ssa)[i]);
 		}
 	}
 	
@@ -487,23 +497,28 @@ int main(int argc, char **argv)
 		cout<<"Second run starts"<<endl;
 		
 		uint64_t l = 1ULL << static_cast<uint64_t>(log2(text_size));
-		B->clear();
+		B.clear();
 		b = A_prime->size();
 		m = A_prime->size();
 		
-		vector<uint64_t> L;
+		/*vector<uint64_t> L;
 	
 		for(uint64_t i = 0; i<m; ++i )
 		{	
 			L.push_back(i);
-		}
+		}*/
+		
+		vector<uint64_t> L(m); //greg
+	    std::iota(L.begin(), L.end(), 0); // greg L will become: [0..m-1]
+
 		
 		SSA initial;
 		initial.lcp = 0;
-		initial.L = L;
+		//initial.L = L;
+		initial.L.assign(L.begin(), L.end()); 
 		
-		B->push_back( initial );
-		A_prime->push_back( A_prime->at(0) );
+		B.push_back( initial );
+		A_prime->push_back( (*A_prime)[0] );
 		
 		while( l > 0 )
 		{	
@@ -513,12 +528,13 @@ int main(int argc, char **argv)
 		}	
 		
 		order( final_ssa_prime, final_lcp_prime, B, A_prime, sequence, text_size, b);
-			
-		for(uint64_t i = 0; i<P->size(); i++)
+		
+		const auto Psz=P->size();	
+		for(uint64_t i = 0; i<Psz; ++i)
 		{
-			final_ssa->at( P->at(i) ) = final_ssa_prime->at(i);
-			if( final_lcp->at( P->at(i) ) == next_initial_l )
-				final_lcp->at( P->at(i) ) = final_lcp_prime->at(i);
+			(*final_ssa) [(*P)[i] ] = (*final_ssa_prime)[i];
+			if( (*final_lcp)[ (*P)[i] ]== next_initial_l )
+				(*final_lcp)[ (*P)[i] ] = (*final_lcp_prime)[i];
 		}
 
 		cout<<"Second run ends"<<endl;
@@ -564,7 +580,7 @@ int main(int argc, char **argv)
 	delete( final_ssa );
 	delete( final_lcp_prime );
 	delete( final_ssa_prime );
-	delete( B );
+	//delete( B );
 	delete( A );
 	delete( P );
 	
