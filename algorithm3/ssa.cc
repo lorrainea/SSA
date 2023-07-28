@@ -237,7 +237,7 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vect
 {
 
 	const uint64_t Bsz=B.size();
-	cout<<" "<<Bsz<<" "<<A->size()<<endl;
+	if(DEBUG)	cout<<" "<<Bsz<<" "<<A->size()<<endl;
 	for(uint64_t i = 0; i<Bsz; i++)
 	{
 		
@@ -399,7 +399,7 @@ int main(int argc, char **argv)
 	uint64_t s = 2*b;
 	uint64_t fp_len = text_size / s;
 	if ( (text_size - fp_len * s) > text_size/s ) fp_len += 1; 
-	cout<<"Block length = "<<fp_len<<endl;
+	cout<<"Block length = "<<fp_len<<endl<<endl;
 	
 	// computing fingerprints
 	uint64_t * FP =  ( uint64_t * ) calloc( s , sizeof( uint64_t ) );
@@ -418,13 +418,13 @@ int main(int argc, char **argv)
 		i += fp_len;
 		if ( i + fp_len > text_size ) break;
 	}
-	cout<<"Preprocessing ends"<<endl;
+	cout<<"Preprocessing ends"<<endl<<endl;
 	double end = gettime();
 	prep_total = end - start;
 
 	//vector<SSA> * B = new vector<SSA>();
 	//(*B).reserve(b); //greg
-    vector<SSA> B;
+    	vector<SSA> B;
 
 
 	vector<uint64_t> * A = new vector<uint64_t>();
@@ -445,7 +445,7 @@ int main(int argc, char **argv)
 	initial.lcp = 0;
 	//initial.L=L;
 	
-    initial.L.assign(L.begin(), L.end()); 
+    	initial.L.assign(L.begin(), L.end()); 
 
 	B.push_back( initial );
 
@@ -476,7 +476,7 @@ int main(int argc, char **argv)
 	order( final_ssa, final_lcp, B, A, sequence, text_size, b);	
 	end = gettime();
 	order_total = end - start;
-	cout<<"First run ends"<<endl;
+	cout<<"First run ends"<<endl<<endl;
 	
 	for(uint64_t i = 0; i<b; i++)
 	{
@@ -509,7 +509,7 @@ int main(int argc, char **argv)
 		}*/
 		
 		vector<uint64_t> L(m); //greg
-	    std::iota(L.begin(), L.end(), 0); // greg L will become: [0..m-1]
+	    	std::iota(L.begin(), L.end(), 0); // greg L will become: [0..m-1]
 
 		
 		SSA initial;
