@@ -585,6 +585,7 @@ int main(int argc, char **argv)
 	delete( final_ssa_prime );
 	//delete( B );
 	delete( A );
+	delete( A_prime );
 	delete( P );
 	
 	free( sequence );
