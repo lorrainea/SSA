@@ -184,7 +184,9 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 		}
 
 		double start = gettime();
-		((*B)[i].L).clear();
+		//((*B)[i].L).clear();
+		vector<uint64_t>().swap((*B)[i].L);
+
 	        
 		for( uint64_t j = 0; j < k; j++ )
 		{	
@@ -215,7 +217,9 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 				(*B)[i].L.push_back( vec[j][0] );
 			}
 		}
-		vec.clear();
+		//vec.clear();
+		vector<vector<uint64_t>>().swap(vec);
+
 		double end = gettime();
 		gr_total += end - start;
 	}
