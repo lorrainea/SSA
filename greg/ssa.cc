@@ -314,7 +314,7 @@ int main(int argc, char **argv)
 	ifstream seq(argv[1], ios::in | ios::binary);
 
 	seq.seekg(0, ios::end);
-	int file_size = seq.tellg();
+	uint64_t file_size = seq.tellg();
 
 	uint64_t text_size = 0;
 	unsigned char * sequence =  ( unsigned char * ) calloc( file_size , sizeof( unsigned char ) );
