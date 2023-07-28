@@ -470,12 +470,12 @@ int main(int argc, char **argv)
 		initial_l=initial_l>>1;	
 	}	
 		
-	//order_total = 0;
-	//start = gettime();
+	order_total = 0;
+	start = gettime();
 	
 	order( final_ssa, final_lcp, B, A, sequence, text_size, b);	
-	//end = gettime();
-	//order_total = end - start;
+	end = gettime();
+	order_total = end - start;
 	cout<<"First run ends"<<endl;
 	
 	for(uint64_t i = 0; i<b; i++)
@@ -527,7 +527,10 @@ int main(int argc, char **argv)
 			l=l>>1;
 		}	
 		
+		start = gettime();
 		order( final_ssa_prime, final_lcp_prime, B, A_prime, sequence, text_size, b);
+		end = gettime();
+		order_total += end - start;
 		
 		const auto Psz=P->size();	
 		for(uint64_t i = 0; i<Psz; ++i)
