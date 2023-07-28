@@ -183,13 +183,17 @@ uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp
 				else	vec[itx->second].push_back(*it);
 			}
 			groups.clear();
+
 			double end = gettime();
 			hash_total += end - start;
 		}
 
 		double start = gettime();
-		((B)[i].L).clear();
-	        
+		
+		//((B)[i].L).clear();
+	      
+	    vector<uint64_t>().swap(B[i].L);
+
 		for( uint64_t j = 0; j < k; j++ )
 		{	
 			const auto itsz=vec[j].size();
@@ -219,7 +223,9 @@ uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp
 				(B)[i].L.push_back( vec[j][0] );
 			}
 		}
-		vec.clear();
+		//vec.clear();
+		vector<vector<uint64_t>>().swap(vec);
+
 		double end = gettime();
 		gr_total += end - start;
 	}
@@ -497,7 +503,9 @@ int main(int argc, char **argv)
 		cout<<"Second run starts"<<endl;
 		
 		uint64_t l = 1ULL << static_cast<uint64_t>(log2(text_size));
-		B.clear();
+		//B.clear();
+		vector<SSA>().swap(B);
+
 		b = A_prime->size();
 		m = A_prime->size();
 		

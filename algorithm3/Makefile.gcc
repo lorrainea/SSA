@@ -2,7 +2,7 @@ MF=     Makefile.gcc
  
 CC=     g++
  
-CFLAGS= -D_USE_64 -g -msse3 -Ofast -fomit-frame-pointer -funroll-loops -march=native  
+CFLAGS= -Wall -D_USE_64 -msse3 -Ofast -fomit-frame-pointer -funroll-loops -march=native  
  
 LFLAGS= -std=c++17 -DNDEBUG
 
