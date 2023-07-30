@@ -341,17 +341,18 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+	
 	for (uint64_t i = 0; i < file_size; i++)
 	{
 		seq.read(reinterpret_cast<char*>(&c), 1);
 
-		if( ( char) c == '\n' || ( char) c == ' ' )
-			continue;
-		else
-		{	
+		//if( ( char) c == '\n' || ( char) c == ' ' )
+		//	continue;
+		//else
+		//{	
 			sequence[text_size] = static_cast<int>(c); 
 			text_size++;
-		}
+		//}
 		
 	}
 	seq.close();
