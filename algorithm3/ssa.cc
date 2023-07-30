@@ -391,7 +391,9 @@ int main(int argc, char **argv)
 				cout<<"Suffix list contains a suffix larger than sequence length"<<endl;
 				return 1;
 			}	
-			slcp_list->push_back(0);
+			
+			if(line.compare("\n")!=0)
+				slcp_list->push_back(0);
 			
 			line = "";
 			
