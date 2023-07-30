@@ -97,8 +97,8 @@ int main(int argc, char **argv)
 				cout<<"Suffix list contains a suffix larger than sequence length"<<endl;
 				return 1;
 			}	
-			
-			suffix_list->push_back(stoi(line));
+			if(line.compare("\n")!=0)
+				suffix_list->push_back(stoi(line));
 			
 			b++;
 			line = "";
