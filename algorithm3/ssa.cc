@@ -350,7 +350,8 @@ int main(int argc, char **argv)
 		//	continue;
 		//else
 		//{	
-			sequence[text_size] = static_cast<int>(c); 
+			//sequence[text_size] = static_cast<int>(c); 
+			sequence[text_size]=c;
 			text_size++;
 		//}
 		
