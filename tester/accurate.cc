@@ -64,13 +64,13 @@ int main(int argc, char **argv)
 	{
 		seq.read(reinterpret_cast<char*>(&c), 1);
 
-		if( ( char) c == '\n' || ( char) c == ' ' )
+		/*if( ( char) c == '\n' || ( char) c == ' ' )
 			continue;
 		else
-		{	
+		{*/	
 			sequence2[text_size] = c; 
 			text_size++;
-		}
+		//}
 		
 	}
 	seq.close();
