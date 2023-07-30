@@ -386,7 +386,7 @@ int main(int argc, char **argv)
 		{
 			ssa_list->push_back(stoi(line));
 			
-			if( stoi(line) >= text_size )
+			if( (uint64_t)stoi(line) >= text_size )
 			{
 				cout<<"Suffix list contains a suffix larger than sequence length"<<endl;
 				return 1;
