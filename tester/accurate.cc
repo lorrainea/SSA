@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 		if( ( char) c == '\n' || ( char) c == ' ' )
 		{
 		
-			if( stoi(line) >= text_size )
+			if( (uint64_t)stoi(line) >= text_size )
 			{
 				cout<<"Suffix list contains a suffix larger than sequence length"<<endl;
 				return 1;
