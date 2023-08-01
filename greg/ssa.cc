@@ -359,8 +359,8 @@ int main(int argc, char **argv)
         uint64_t fp_len = text_size / s;
         if ( (text_size - fp_len * s) > text_size/s )
                 s = text_size/fp_len;
-        cout<<"Block length = "<<fp_len<<endl<<endl;
-        cout<<"Size s of FP table = " << s << endl;
+        cout<<"Block length = "<<fp_len<<endl;
+        cout<<"Size s of FP table = " << s <<endl<<endl;
 	
 	// computing fingerprints
 	uint64_t * FP =  ( uint64_t * ) calloc( s , sizeof( uint64_t ) );
