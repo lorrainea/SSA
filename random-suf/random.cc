@@ -34,6 +34,7 @@ int main(int argc, char **argv)
 			if ( set.find(key) == set.end() )	
 			{
 				S[i] = key;
+				set.insert(key);
 				break;
 			}
 		}
