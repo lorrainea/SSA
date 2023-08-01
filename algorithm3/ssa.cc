@@ -25,12 +25,9 @@ using namespace std;
 
 struct SSA
 {
-	
-	//uint64_t m;
 	uint64_t lcp;
 	vector<uint64_t> L;
-
-	 SSA() : lcp(0), L() {}
+	SSA() : lcp(0), L() {}
 };
 
 double gettime( void )
@@ -79,7 +76,6 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 			}
 			
 			for(uint64_t i = start; i<ssa; i++)	fp_short = karp_rabin_hashing::concat( fp_short, sequence[i], 1);
-			//fp_short = karp_rabin_hashing::hash_string(&sequence[start], ssa - start);
 
 		}
 		else 	// we have the fp_short stored and we read it from FP
@@ -103,8 +99,7 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
                         }
 
                         for(uint64_t i = start; i< ssa_end; i++)	fp_long = karp_rabin_hashing::concat( fp_long, sequence[i] , 1 );
-			//fp_long = karp_rabin_hashing::hash_string(&sequence[start], ssa_end - start);
-                    }
+                }
                 else
                 { 
                 	uint64_t prefix = ssa_end / fp_len;
@@ -116,7 +111,6 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
             }
             else 
             {
-		//fp = karp_rabin_hashing::hash_string(&sequence[ssa], ssa_end - ssa);
             	for(uint64_t i=ssa; i< ssa_end; ++i)	fp =  karp_rabin_hashing::concat( fp, sequence[i], 1 );
             }
 
@@ -126,7 +120,7 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m )
 {
     	vector<SSA> * B_prime = new vector<SSA>();
-	(*B_prime).reserve(b); //greg
+	(*B_prime).reserve(b); 
 
 	const auto Bsz = B.size();
 	
@@ -190,9 +184,7 @@ uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp
 
 		double start = gettime();
 		
-		//((B)[i].L).clear();
-	      
-	    vector<uint64_t>().swap(B[i].L);
+	    	vector<uint64_t>().swap(B[i].L);
 
 		for( uint64_t j = 0; j < k; j++ )
 		{	
@@ -200,7 +192,7 @@ uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp
 
 			if( itsz == s )
 			{
-				(B)[i].lcp += l; //greg
+				(B)[i].lcp += l;
 				for(const auto& value: vec[j])	(B)[i].L.push_back(value);				
 
 			}
@@ -208,11 +200,10 @@ uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp
 			{
 				m++; 
 				SSA new_ssa;
-				//new_ssa.m = m;
 
 				for(const auto& value: vec[j])	new_ssa.L.push_back(value);				
 				
-				new_ssa.lcp = (B)[i].lcp + l; //greg
+				new_ssa.lcp = (B)[i].lcp + l;
 				B_prime->push_back( new_ssa );
 				(B)[i].L.push_back(m);
 
@@ -223,7 +214,6 @@ uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp
 				(B)[i].L.push_back( vec[j][0] );
 			}
 		}
-		//vec.clear();
 		vector<vector<uint64_t>>().swap(vec);
 
 		double end = gettime();
@@ -243,32 +233,12 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vect
 {
 
 	const uint64_t Bsz=B.size();
-	if(DEBUG)	cout<<" "<<Bsz<<" "<<A->size()<<endl;
 	for(uint64_t i = 0; i<Bsz; i++)
-	{
-		
 		sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
-	}
-	if(DEBUG)
-	{
-		cout<<"\n print B:\n";
-		for(auto it : B)
-		{
-			SSA x=(SSA)(it);
-			cout<<"i:";
-			for(auto &it2 : x.L)
-			{
-				cout<<it2<<" ";
-			}
-			cout<<endl;
-		}
-	}
 	
-	stack<pair<uint64_t,uint64_t>> S; //= new stack<pair<uint64_t,uint64_t>>();
+	stack<pair<uint64_t,uint64_t>> S; 
 	
 	S.push( make_pair<uint64_t, uint64_t>((uint64_t)b, 0) );  //b is the correct first index, not b+1
-	if(DEBUG)
-		cout<<"first_added: "<<b<<" "<<0<<endl;
 	
 	uint64_t l = 0;
 	uint64_t mymax=numeric_limits<uint64_t>::max();
@@ -281,19 +251,13 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vect
 		if( l_prime < l )
 			l = l_prime;
 
-		if(DEBUG)
-			cout<<"("<<i<<" "<<b<<")"<<endl;      //this is what I got from top
-		
 		if(i>=b) //it is not one of the initial groups
 		{
 			uint64_t lcp = (B)[i-b].lcp;
 			auto myl=(B)[i-b].L;
-			
-			
 			for(vector<uint64_t>::reverse_iterator it=myl.rbegin();it!=myl.rend();++it)
 			{				  					
 				S.push(make_pair<uint64_t, uint64_t>( (uint64_t) *it, (uint64_t) lcp ));
-				if(DEBUG) cout<<"Stack add (i,lcp): "<<*it<<" "<<lcp<<endl;		
 			}
 		}
 		else
@@ -301,11 +265,6 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vect
 			final_ssa->push_back( (*A)[i] );
 			final_lcp->push_back( l );
 			l = mymax;
-			if(DEBUG)
-			{
-				cout<<"SSA add:"<<A->at(i)<<endl;
-				cout<<"SLCP add:"<<l<<endl;
-			}
 		}	
 	}
 
@@ -341,20 +300,11 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	
 	for (uint64_t i = 0; i < file_size; i++)
 	{
 		seq.read(reinterpret_cast<char*>(&c), 1);
-
-		//if( ( char) c == '\n' || ( char) c == ' ' )
-		//	continue;
-		//else
-		//{	
-			//sequence[text_size] = static_cast<int>(c); 
-			sequence[text_size]=c;
-			text_size++;
-		//}
-		
+		sequence[text_size]=c;
+		text_size++;
 	}
 	seq.close();
 	
@@ -386,7 +336,7 @@ int main(int argc, char **argv)
 		{
 			ssa_list->push_back(stoi(line));
 			
-			if( (uint64_t)stoi(line) >= text_size )
+			if( (uint64_t) stoi(line) >= text_size )
 			{
 				cout<<"Suffix list contains a suffix larger than sequence length"<<endl;
 				return 1;
@@ -408,8 +358,10 @@ int main(int argc, char **argv)
 	
 	uint64_t s = 2*b;
 	uint64_t fp_len = text_size / s;
-	if ( (text_size - fp_len * s) > text_size/s ) fp_len += 1; 
+	if ( (text_size - fp_len * s) > text_size/s ) 
+		s = text_size/fp_len; 
 	cout<<"Block length = "<<fp_len<<endl<<endl;
+	cout<<"Size s of FP table = " << s << endl;
 	
 	// computing fingerprints
 	uint64_t * FP =  ( uint64_t * ) calloc( s , sizeof( uint64_t ) );
@@ -432,10 +384,7 @@ int main(int argc, char **argv)
 	double end = gettime();
 	prep_total = end - start;
 
-	//vector<SSA> * B = new vector<SSA>();
-	//(*B).reserve(b); //greg
     	vector<SSA> B;
-
 
 	vector<uint64_t> * A = new vector<uint64_t>();
 	
@@ -453,7 +402,6 @@ int main(int argc, char **argv)
 	
 	SSA initial;
 	initial.lcp = 0;
-	//initial.L=L;
 	
     	initial.L.assign(L.begin(), L.end()); 
 
@@ -507,26 +455,16 @@ int main(int argc, char **argv)
 		cout<<"Second run starts"<<endl;
 		
 		uint64_t l = 1ULL << static_cast<uint64_t>(log2(text_size));
-		//B.clear();
 		vector<SSA>().swap(B);
 
 		b = A_prime->size();
 		m = A_prime->size();
 		
-		/*vector<uint64_t> L;
-	
-		for(uint64_t i = 0; i<m; ++i )
-		{	
-			L.push_back(i);
-		}*/
-		
-		vector<uint64_t> L(m); //greg
-	    	std::iota(L.begin(), L.end(), 0); // greg L will become: [0..m-1]
+		vector<uint64_t> L(m); 
+	    	std::iota(L.begin(), L.end(), 0); 
 
-		
 		SSA initial;
 		initial.lcp = 0;
-		//initial.L = L;
 		initial.L.assign(L.begin(), L.end()); 
 		
 		B.push_back( initial );
@@ -560,9 +498,8 @@ int main(int argc, char **argv)
 	std::chrono::steady_clock::time_point end_total = std::chrono::steady_clock::now();
 	std::cout<<"Time taken "<<std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count()/(double)1000 << "[s]" << std::endl;
 	std::cout<<" Time taken by preprocessing "<<prep_total << "[s]" << std::endl;
-	std::cout<<" Time taken by sorting fingerpints "<<sort_total << "[s]" << std::endl;
-	std::cout<<" Time taken by hashing fingeprints "<<hash_total << "[s]" << std::endl;
-	//std::cout<<" Time taken by fingerprints "<<kr_total << "[s]" << std::endl;
+	std::cout<<" Time taken by sorting fingerprints "<<sort_total << "[s]" << std::endl;
+	std::cout<<" Time taken by hashing fingerprints "<<hash_total << "[s]" << std::endl;
 	std::cout<<" Time taken by the rest of grouping "<<gr_total << "[s]" << std::endl;
 	std::cout<<" Time taken by ordering "<<order_total << "[s]" << std::endl;
 
@@ -574,14 +511,11 @@ int main(int argc, char **argv)
 	
 	ofstream output_ssa(suff_ssa);
 	
-	//cout<<"SSA:\n";
-
 	for(uint64_t i = 0; i<final_ssa->size(); i++)
 	{
 		output_ssa<<final_ssa->at(i)<<endl;
 		if(DEBUG)	cout<<(*final_ssa)[i]<<" ";
 	}
-	//cout<<"\nSLCP:\n";
 	ofstream output_lcp(suff_lcp);
 	for(uint64_t i = 0; i<final_lcp->size(); i++)
 	{
@@ -595,7 +529,6 @@ int main(int argc, char **argv)
 	delete( final_ssa );
 	delete( final_lcp_prime );
 	delete( final_ssa_prime );
-	//delete( B );
 	delete( A );
 	delete( A_prime );
 	delete( P );
