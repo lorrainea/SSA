@@ -356,6 +356,7 @@ int main(int argc, char **argv)
 	cout<<"Number of suffixes b = " << b << endl;
 	uint64_t l = 1ULL << static_cast<uint64_t>(log2(text_size));
 	uint64_t s = 2*b;
+	if ( s > text_size ) s = text_size;
         uint64_t fp_len = text_size / s;
         if ( (text_size - fp_len * s) > text_size/s )
                 s = text_size/fp_len;
