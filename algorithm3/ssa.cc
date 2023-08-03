@@ -18,6 +18,7 @@
 #include <sys/time.h>
 #include <numeric>
 #include <memory>
+#include <sstream>
 #define DEBUG false
 
 using namespace std;
@@ -117,7 +118,8 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
         return fp;
     }
 
-uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m )
+uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, 
+	uint64_t b, uint64_t &m, uint64_t &z)
 {
     	vector<SSA> * B_prime = new vector<SSA>();
 	(*B_prime).reserve(b); 
@@ -130,7 +132,7 @@ uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp
 		uint64_t k = 0;	
 		vector<vector<uint64_t>> vec;
 
-		if( s <= 1500000 )
+		if( s <= (const uint64_t)z )
 		{
 			double start = gettime();
 			vector<pair<uint64_t,uint64_t> > vec_to_sort;
@@ -274,17 +276,20 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vect
 
 int main(int argc, char **argv)
 {
-	if( argc < 4 )
+	if( argc < 5 )
 	{
 		cout<<"Check arguments!\n";
-		cout<<"./ssa <sequence_file> <suffix_list> <output_filename>\n";
+		cout<<"./ssa <sequence_file> <suffix_list> <output_filename> threshold_z\n";
 		exit(-1);
 	}
+	std::string str4(argv[4]);
+	uint64_t z;             
+  	std::stringstream(str4)>>z;
 
 	/* Read in sequence file */
 	ifstream seq(argv[1], ios::in | ios::binary);
 
-	seq.seekg(0, ios::end);
+	/*seq.seekg(0, ios::end);
 	uint64_t file_size = seq.tellg();
 
 	uint64_t text_size = 0;
@@ -306,13 +311,24 @@ int main(int argc, char **argv)
 		text_size++;
 	}
 	seq.close();
+	*/
+	vector<char> input_seq_vec;
+  	char c;
+  	while (seq.get(c))     
+  	{
+  		input_seq_vec.push_back(c);	
+  	}
+  	seq.close();
+  	uint64_t text_size = input_seq_vec.size();
+  	unsigned char * sequence = reinterpret_cast<unsigned char *>(input_seq_vec.data());
+
 	
 	cout<<"Text length n = " << text_size << endl;
 
 	/* Read in list of sparse suffixes */
 	ifstream suff_list(argv[2], ios::in | ios::binary);
 	suff_list.seekg(0, ios::end);
-	file_size = suff_list.tellg();
+	uint64_t file_size = suff_list.tellg();
 
 	vector<uint64_t> * ssa_list = new vector<uint64_t>();
 	vector<uint64_t> * slcp_list = new vector<uint64_t>();
@@ -424,7 +440,7 @@ int main(int argc, char **argv)
 	while( initial_l > 0 )
 	{
 		cout<< "Initial l: " << initial_l <<", nodes: "<< m <<endl;
-		group( B, A, FP, fp_len, initial_l, sequence, text_size, b, m );
+		group( B, A, FP, fp_len, initial_l, sequence, text_size, b, m, z);
 		initial_l=initial_l>>1;	
 	}	
 		
@@ -473,7 +489,7 @@ int main(int argc, char **argv)
 		while( l > 0 )
 		{	
 			cout<< "l: " << l <<", nodes: "<< m <<endl;
-			group( B, A_prime, FP, fp_len, l, sequence, text_size, b, m );
+			group( B, A_prime, FP, fp_len, l, sequence, text_size, b, m, z);
 			l=l>>1;
 		}	
 		
@@ -533,7 +549,7 @@ int main(int argc, char **argv)
 	delete( A_prime );
 	delete( P );
 	
-	free( sequence );
+	//free( sequence );
 	
 	return 0;
 }
