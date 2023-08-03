@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 	
 	
 	ifstream seq(argv[1], ios::in | ios::binary);
- 	seq.seekg(0, ios::end);
+ 	/*seq.seekg(0, ios::end);
    	uint64_t file_size = seq.tellg();
    	
    	uint64_t text_size = 0;
@@ -64,22 +64,28 @@ int main(int argc, char **argv)
 	{
 		seq.read(reinterpret_cast<char*>(&c), 1);
 
-		/*if( ( char) c == '\n' || ( char) c == ' ' )
-			continue;
-		else
-		{*/	
 			sequence2[text_size] = c; 
-			text_size++;
-		//}
-		
+			text_size++;				
 	}
-	seq.close();
+	seq.close();*/
+
+	vector<char> input_seq_vec;
+  	char c;
+  	while (seq.get(c))     
+  	{
+  		input_seq_vec.push_back(c);	
+  	}
+  	seq.close();
+  	uint64_t text_size = input_seq_vec.size();
+  	unsigned char * sequence2 = reinterpret_cast<unsigned char *>(input_seq_vec.data());
+
+
 	
 	vector<int64_t> * suffix_list = new vector<int64_t>();
 	
 	 ifstream suff_list(argv[2], ios::in | ios::binary);
   	suff_list.seekg(0, ios::end);
-  	file_size = suff_list.tellg();
+  	uint64_t file_size = suff_list.tellg();
   	
   	string line="";
 	suff_list.seekg (0, ios::beg);
@@ -191,7 +197,13 @@ int main(int argc, char **argv)
   		output_lcp<<real_LCP->at(i)<<endl;
 
   	
-	
+	delete suffix_list;
+	delete real_SA;
+	delete real_LCP;
+	free(LCP);
+	free(invSA);
+	free(SA);
+
 	return 0;
 }
 
