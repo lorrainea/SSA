@@ -274,7 +274,6 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vect
 
 int main(int argc, char **argv)
 {
-
 	if( argc < 4 )
 	{
 		cout<<"Check arguments!\n";
@@ -408,7 +407,6 @@ int main(int argc, char **argv)
 
 	B.push_back( initial );
 
-
 	A->push_back( (*ssa_list)[0] );
 	uint64_t m = ssa_list->size();
 
@@ -416,7 +414,8 @@ int main(int argc, char **argv)
 	kr_total = 0;
 	gr_total = 0;
 	
-	uint64_t initial_l = 1ULL << static_cast<uint64_t>(log2(text_size/b));
+	uint64_t c1 = 1;
+	uint64_t initial_l = 1ULL << static_cast<uint64_t>(log2(c1*text_size/b));
 	uint64_t next_initial_l = initial_l * 2 - 1;
 	vector<uint64_t> * final_ssa = new vector<uint64_t>();
 	vector<uint64_t> * final_lcp = new vector<uint64_t>();
