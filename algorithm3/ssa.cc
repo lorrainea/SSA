@@ -19,6 +19,7 @@
 #include <numeric>
 #include <memory>
 #include <sstream>
+#include "../include/ips4o.hpp"
 #define DEBUG false
 
 using namespace std;
@@ -141,8 +142,8 @@ uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp
 				uint64_t fp = fingerprint( (*A)[(*it)]+(B)[i].lcp, FP, fp_len, l, sequence, text_size );
 				vec_to_sort.push_back( make_pair(fp,*it) );
 			}
-
-			sort(vec_to_sort.begin(),vec_to_sort.end());
+			//sort(vec_to_sort.begin(),vec_to_sort.end());
+			ips4o::sort(vec_to_sort.begin(),vec_to_sort.end());
 
 			const auto vsz=vec_to_sort.size();
 			for(uint64_t i=0;i<vsz;++i)
@@ -236,8 +237,9 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vect
 
 	const uint64_t Bsz=B.size();
 	for(uint64_t i = 0; i<Bsz; i++)
-		sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
-	
+	{	//sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
+		ips4o::sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
+	}
 	stack<pair<uint64_t,uint64_t>> S; 
 	
 	S.push( make_pair<uint64_t, uint64_t>((uint64_t)b, 0) );  //b is the correct first index, not b+1
