@@ -281,10 +281,11 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
+	
 	/* Read in sequence file */
 	ifstream seq(argv[1], ios::in | ios::binary);
 
-	seq.seekg(0, ios::end);
+	/*seq.seekg(0, ios::end);
 	uint64_t file_size = seq.tellg();
 
 	uint64_t text_size = 0;
@@ -305,14 +306,23 @@ int main(int argc, char **argv)
 		sequence[text_size]=c;
 		text_size++;
 	}
-	seq.close();
-	
+	seq.close();*/
+	vector<char> input_seq_vec;
+  	char c;
+  	while (seq.get(c))     
+  	{
+  		input_seq_vec.push_back(c);	
+  	}
+  	seq.close();
+  	uint64_t text_size = input_seq_vec.size();
+  	unsigned char * sequence = reinterpret_cast<unsigned char *>(input_seq_vec.data());
+
 	cout<<"Text length n = " << text_size << endl;
 
 	/* Read in list of sparse suffixes */
 	ifstream suff_list(argv[2], ios::in | ios::binary);
 	suff_list.seekg(0, ios::end);
-	file_size = suff_list.tellg();
+	uint64_t file_size = suff_list.tellg();
 
 	vector<uint64_t> * ssa_list = new vector<uint64_t>();
 	vector<uint64_t> * slcp_list = new vector<uint64_t>();
@@ -468,7 +478,7 @@ int main(int argc, char **argv)
 	delete( B );
 	delete( A );
 	
-	free( sequence );
+	//free( sequence );
 	
 	return 0;
 }
