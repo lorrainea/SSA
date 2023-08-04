@@ -19,7 +19,11 @@
 #include <numeric>
 #include <memory>
 #include <sstream>
-//#include "../include/ips4o.hpp"
+#define IPS4 false
+
+#if IPS4 == true
+#include "../include/ips4o.hpp"
+#endif
 
 #define DEBUG false
 #define THRESHOLD 1500000
@@ -146,8 +150,11 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 				vec_to_sort.push_back( make_pair(fp,*it) );
 			}
 
-			sort(vec_to_sort.begin(),vec_to_sort.end());
-			//ips4o::sort(vec_to_sort.begin(),vec_to_sort.end());
+			#if IPS4 == true
+				ips4o::sort(vec_to_sort.begin(),vec_to_sort.end());
+			#else
+				sort(vec_to_sort.begin(),vec_to_sort.end());
+			#endif
 
 			const auto vsz=vec_to_sort.size();
 			for(uint64_t i=0;i<vsz;++i)
@@ -242,8 +249,11 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vect
 	const uint64_t Bsz=B->size();
 	for(uint64_t i = 0; i<Bsz; i++)
 	{	
-		sort((*B)[i].L.begin(), (*B)[i].L.end(), compare(sequence,A,(*B)[i].lcp));
-		//ips4o::sort((*B)[i].L.begin(), (*B)[i].L.end(), compare(sequence,A,(*B)[i].lcp));
+		#if IPS4 == true
+			ips4o::sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
+		#else
+			sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
+		#endif
 	}
 	stack<pair<uint64_t,uint64_t>> S; 
 	
@@ -298,7 +308,8 @@ int main(int argc, char **argv)
                 std::stringstream(str4)>>z;
         }
         else z = THRESHOLD;
-
+        cout<<"Threshold z="<<z<<endl;
+	
 	/* Read in sequence file */
 	ifstream seq(argv[1], ios::in | ios::binary);
 
