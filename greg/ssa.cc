@@ -18,9 +18,11 @@
 #include <sys/time.h>
 #include <numeric>
 #include <memory>
-#include "../include/ips4o.hpp"
+#include <sstream>
+//#include "../include/ips4o.hpp"
 
 #define DEBUG false
+#define THRESHOLD 1500000
 
 using namespace std;
 
@@ -119,7 +121,7 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
         return fp;
     }
 
-uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m )
+uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m, uint64_t &z )
 {
     	vector<SSA> * B_prime = new vector<SSA>();
 	(*B_prime).reserve(b); 
@@ -131,19 +133,21 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 		const uint64_t s = (*B)[i].L.size();
 		uint64_t k = 0;	
 		vector<vector<uint64_t>> vec;
+		vector<uint64_t> tmp;
 
-		if( s <= 1500000 )
+		if( s <= (const uint64_t) z )
 		{
 			double start = gettime();
 			vector<pair<uint64_t,uint64_t> > vec_to_sort;
 			for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end(); ++it)
 			{
+				if ( (*A)[(*it)]+(*B)[i].lcp + l > text_size ) { tmp.push_back((*it)); continue; }
 				uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size );
 				vec_to_sort.push_back( make_pair(fp,*it) );
 			}
 
-			//sort(vec_to_sort.begin(),vec_to_sort.end());
-			ips4o::sort(vec_to_sort.begin(),vec_to_sort.end());
+			sort(vec_to_sort.begin(),vec_to_sort.end());
+			//ips4o::sort(vec_to_sort.begin(),vec_to_sort.end());
 
 			const auto vsz=vec_to_sort.size();
 			for(uint64_t i=0;i<vsz;++i)
@@ -166,7 +170,7 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
     			auto groups = ankerl::unordered_dense::map<uint64_t, uint64_t >();
 			for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end(); ++it)
 			{
-
+				if ( (*A)[(*it)]+(*B)[i].lcp + l > text_size ) { tmp.push_back((*it)); continue; }
 				uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size );
 				auto itx = groups.find(fp);
 				if(itx == groups.end())
@@ -216,8 +220,9 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 				(*B)[i].L.push_back( vec[j][0] );
 			}
 		}
+		for (auto& it : tmp) (*B)[i].L.push_back( it );
+                vector<uint64_t>().swap(tmp);
 		vector<vector<uint64_t>>().swap(vec);
-
 		double end = gettime();
 		gr_total += end - start;
 	}
@@ -237,8 +242,8 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vect
 	const uint64_t Bsz=B->size();
 	for(uint64_t i = 0; i<Bsz; i++)
 	{	
-		//sort((*B)[i].L.begin(), (*B)[i].L.end(), compare(sequence,A,(*B)[i].lcp));
-		ips4o::sort((*B)[i].L.begin(), (*B)[i].L.end(), compare(sequence,A,(*B)[i].lcp));
+		sort((*B)[i].L.begin(), (*B)[i].L.end(), compare(sequence,A,(*B)[i].lcp));
+		//ips4o::sort((*B)[i].L.begin(), (*B)[i].L.end(), compare(sequence,A,(*B)[i].lcp));
 	}
 	stack<pair<uint64_t,uint64_t>> S; 
 	
@@ -280,38 +285,23 @@ int main(int argc, char **argv)
 {
 
 	if( argc < 4 )
-	{
-		cout<<"Check arguments!\n";
-		cout<<"./ssa <sequence_file> <suffix_list> <output_filename>\n";
-		exit(-1);
-	}
+        {
+                cout<<"Check arguments!\n";
+                cout<<"./ssa <sequence_file> <suffix_list> <output_filename> [sort/hash_hreshold_z]\n";
+                exit(-1);
+        }
 
-	
+        uint64_t z;
+        if ( argc > 4 )
+        {
+                std::string str4(argv[4]);
+                std::stringstream(str4)>>z;
+        }
+        else z = THRESHOLD;
+
 	/* Read in sequence file */
 	ifstream seq(argv[1], ios::in | ios::binary);
 
-	/*seq.seekg(0, ios::end);
-	uint64_t file_size = seq.tellg();
-
-	uint64_t text_size = 0;
-	unsigned char * sequence =  ( unsigned char * ) calloc( file_size , sizeof( unsigned char ) );
-
-	char c = 0;
-	seq.seekg (0, ios::beg);
-	
-	if( file_size == 0 )
-	{
-		cout<<"Empty sequence file"<<endl;
-		return 1;
-	}
-
-	for (uint64_t i = 0; i < file_size; i++)
-	{
-		seq.read(reinterpret_cast<char*>(&c), 1);
-		sequence[text_size]=c;
-		text_size++;
-	}
-	seq.close();*/
 	vector<char> input_seq_vec;
   	char c;
   	while (seq.get(c))     
@@ -430,7 +420,7 @@ int main(int argc, char **argv)
 	while( l > 0 )
 	{
 		cout<< "l: " << l <<", nodes: "<< m <<endl;
-		group( B, A, FP, fp_len, l, sequence, text_size, b, m );
+		group( B, A, FP, fp_len, l, sequence, text_size, b, m, z );
 		l=l>>1;
 	}
 	cout<<"Grouping ends"<<endl;
@@ -482,8 +472,6 @@ int main(int argc, char **argv)
 	delete( final_ssa );
 	delete( B );
 	delete( A );
-	
-	//free( sequence );
 	
 	return 0;
 }
