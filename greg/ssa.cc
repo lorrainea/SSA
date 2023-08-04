@@ -338,9 +338,9 @@ int main(int argc, char **argv)
 		
 		if( ( char) c == '\n' || ( char) c == ' ' )
 		{
-			ssa_list->push_back(stoi(line));
+			ssa_list->push_back(stoull(line));
 			
-			if( (uint64_t) stoi(line) >= text_size )
+			if( stoull(line) >= text_size )
 			{
 				cout<<"Suffix list contains a suffix larger than sequence length"<<endl;
 				return 1;
