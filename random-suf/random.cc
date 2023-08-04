@@ -14,8 +14,8 @@ int main(int argc, char **argv)
                 cout<<"./random <n> <#suffixes>\n";
                 exit(-1);
         }
-        uint64_t N = (uint64_t) atoi(argv[1]);
-        uint64_t suf = (uint64_t) atoi(argv[2]);
+        uint64_t N = (uint64_t) atoll(argv[1]);
+        uint64_t suf = (uint64_t) atoll(argv[2]);
 
         if (suf > N )
         {
