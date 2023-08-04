@@ -98,7 +98,6 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
                         	fp_long = FP[prefix - 1];
                         	start = prefix * fp_len;
                         }
-
                         for(uint64_t i = start; i< ssa_end; i++)	fp_long = karp_rabin_hashing::concat( fp_long, sequence[i] , 1 );
                 }
                 else
@@ -117,8 +116,7 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
 	return fp;
 }
 
-uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, 
-	uint64_t b, uint64_t &m, uint64_t &z)
+uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m, uint64_t &z)
 {
     	vector<SSA> * B_prime = new vector<SSA>();
 	(*B_prime).reserve(b); 
@@ -334,9 +332,9 @@ int main(int argc, char **argv)
 		
 		if( ( char) c == '\n' || ( char) c == ' ' )
 		{
-			ssa_list->push_back(stoi(line));
+			ssa_list->push_back(stoull(line));
 			
-			if( (uint64_t) stoi(line) >= text_size )
+			if( stoull(line) >= text_size )
 			{
 				cout<<"Suffix list contains a suffix larger than sequence length"<<endl;
 				return 1;
