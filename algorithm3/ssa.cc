@@ -19,7 +19,12 @@
 #include <numeric>
 #include <memory>
 #include <sstream>
-//#include "../include/ips4o.hpp"
+#define IPS4 true
+
+#if IPS4 == true
+#include "../include/ips4o.hpp"
+#endif
+
 #define DEBUG false
 #define THRESHOLD 1500000
 using namespace std;
@@ -140,8 +145,11 @@ uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp
 				uint64_t fp = fingerprint( (*A)[(*it)]+(B)[i].lcp, FP, fp_len, l, sequence, text_size );
 				vec_to_sort.push_back( make_pair(fp,*it) );
 			}
-			sort(vec_to_sort.begin(),vec_to_sort.end());
-			//ips4o::sort(vec_to_sort.begin(),vec_to_sort.end());
+			#if IPS4 == true
+				ips4o::sort(vec_to_sort.begin(),vec_to_sort.end());
+			#else
+				sort(vec_to_sort.begin(),vec_to_sort.end());
+			#endif 
 
 			const auto vsz=vec_to_sort.size();
 			for(uint64_t i=0;i<vsz;++i)
@@ -161,7 +169,7 @@ uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp
 		else
 		{	
 			double start = gettime();
-    			auto groups = ankerl::unordered_dense::map<uint64_t, uint64_t >();
+    		auto groups = ankerl::unordered_dense::map<uint64_t, uint64_t >();
 			for(auto it=(B)[i].L.begin();it!=(B)[i].L.end(); ++it)
 			{
 				if ( (*A)[(*it)]+(B)[i].lcp + l > text_size ) { tmp.push_back((*it)); continue; }
@@ -237,8 +245,12 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vect
 
 	const uint64_t Bsz=B.size();
 	for(uint64_t i = 0; i<Bsz; i++)
-	{	sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
-		//ips4o::sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
+	{	
+		#if IPS4 == true
+			ips4o::sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
+		#else
+			sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
+		#endif		
 	}
 	stack<pair<uint64_t,uint64_t>> S; 
 	
@@ -284,6 +296,11 @@ int main(int argc, char **argv)
 		cout<<"./ssa <sequence_file> <suffix_list> <output_filename> [sort/hash_threshold]\n";
 		exit(-1);
 	}
+	#if IPS4 == true
+		cout<<"ips4 is used for sorting\n";
+	#else
+		cout<<"C++ sort is used for sorting\n";
+	#endif
 
 	uint64_t z;             
 	if ( argc > 4 )
@@ -292,6 +309,8 @@ int main(int argc, char **argv)
 		std::stringstream(str4)>>z;
 	}
 	else z = THRESHOLD;
+
+	cout<<"Threshold z="<<z<<endl;
 
 	/* Read in sequence file */
 	ifstream seq(argv[1], ios::in | ios::binary);
