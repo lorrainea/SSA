@@ -43,29 +43,29 @@ for i in range(0, runs):
 	
 	print("COMPARING GREG AND SDSL")
 	run_diff_ssa = r'diff out_accurate.ssa ../greg/out.ssa'	
-	if os.system(run_diff_ssa)==1:
-            break;
-	
+	if os.system(run_diff_ssa)==256:
+	    break;
+
 	run_diff_lcp = r'diff out_accurate.lcp ../greg/out.lcp '	
-	if os.system(run_diff_lcp)==1:
+	if os.system(run_diff_lcp)==256:
 	    break;
 	
 	print("COMPARING ALGORITHM3 AND SDSL")
 	run_diff_ssa_alg3 = r'diff out_accurate.ssa ../algorithm3/out.ssa'	
-	if os.system(run_diff_ssa_alg3)==1:
+	if os.system(run_diff_ssa_alg3)==256:
             break;
 
 	run_diff_lcp_alg3 = r'diff out_accurate.lcp ../algorithm3/out.lcp'	
-	if os.system(run_diff_lcp_alg3)==1:
+	if os.system(run_diff_lcp_alg3)==256:
 	    break;
 	
 	print("COMPARING GREG AND RK-LCE")
 	run_diff_ssa_rk_lce = r'diff ../greg/out.ssa ../rk-lce/out_rk_lce.ssa'	
-	if os.system(run_diff_ssa_rk_lce)==1:
+	if os.system(run_diff_ssa_rk_lce)==256:
             break;
 	
 	run_diff_lcp_rk_lce = r'diff ../greg/out.lcp ../rk-lce/out_rk_lce.lcp'	
-	if os.system(run_diff_lcp_rk_lce)==1:
+	if os.system(run_diff_lcp_rk_lce)==256:
             break;
 	
 	
