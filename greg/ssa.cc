@@ -250,9 +250,9 @@ uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vect
 	for(uint64_t i = 0; i<Bsz; i++)
 	{	
 		#if IPS4 == true
-			ips4o::sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
+			ips4o::sort((*B)[i].L.begin(), (*B)[i].L.end(), compare(sequence,A,(*B)[i].lcp));
 		#else
-			sort((B)[i].L.begin(), (B)[i].L.end(), compare(sequence,A,(B)[i].lcp));
+			sort((*B)[i].L.begin(), (*B)[i].L.end(), compare(sequence,A,(*B)[i].lcp));
 		#endif
 	}
 	stack<pair<uint64_t,uint64_t>> S; 
