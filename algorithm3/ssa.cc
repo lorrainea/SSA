@@ -19,7 +19,7 @@
 #include <numeric>
 #include <memory>
 #include <sstream>
-#define IPS4 true
+#define IPS4 false
 
 #if IPS4 == true
 #include "../include/ips4o.hpp"
