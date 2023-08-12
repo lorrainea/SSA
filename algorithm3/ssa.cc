@@ -315,16 +315,24 @@ int main(int argc, char **argv)
 	/* Read in sequence file */
 	ifstream seq(argv[1], ios::in | ios::binary);
 
-	vector<char> input_seq_vec;
+	//vector<char> input_seq_vec;
   	char c;
+  	
+  	unsigned char *input_seq_char=NULL;  	
+  	uint64_t cnt=0;
   	while (seq.get(c))     
   	{
-  		input_seq_vec.push_back(c);	
+  		//input_seq_vec.push_back(c);	
+  		if(cnt==0 || cnt%1048576)
+  			input_seq_char = ( unsigned char * ) realloc ( input_seq_char,   ( cnt + 1048576 ) * sizeof ( unsigned char ) );		
+		input_seq_char[ cnt ] = c;
+		cnt++;
   	}
   	seq.close();
-  	uint64_t text_size = input_seq_vec.size();
-  	unsigned char * sequence = reinterpret_cast<unsigned char *>(input_seq_vec.data());
-
+  	//uint64_t text_size = input_seq_vec.size();
+  	//unsigned char * sequence = reinterpret_cast<unsigned char *>(input_seq_vec.data());
+  	unsigned char * sequence=input_seq_char;
+	uint64_t text_size=cnt;
 	cout<<"Text length n = " << text_size << endl;
 
 	/* Read in list of sparse suffixes */
@@ -551,6 +559,8 @@ int main(int argc, char **argv)
 	delete( A_prime );
 	delete( P );
 	
+	free ( input_seq_char);
+	input_seq_char = NULL;
 	//free( sequence );
 	
 	return 0;
