@@ -315,22 +315,18 @@ int main(int argc, char **argv)
 	/* Read in sequence file */
 	ifstream seq(argv[1], ios::in | ios::binary);
 
-	//vector<char> input_seq_vec;
-  	char c;
+	char c;
   	
   	unsigned char *input_seq_char=NULL;  	
   	uint64_t cnt=0;
   	while (seq.get(c))     
   	{
-  		//input_seq_vec.push_back(c);	
   		if(cnt==0 || cnt%1048576)
   			input_seq_char = ( unsigned char * ) realloc ( input_seq_char,   ( cnt + 1048576 ) * sizeof ( unsigned char ) );		
 		input_seq_char[ cnt ] = c;
 		cnt++;
   	}
   	seq.close();
-  	//uint64_t text_size = input_seq_vec.size();
-  	//unsigned char * sequence = reinterpret_cast<unsigned char *>(input_seq_vec.data());
   	unsigned char * sequence=input_seq_char;
 	uint64_t text_size=cnt;
 	cout<<"Text length n = " << text_size << endl;
@@ -341,7 +337,7 @@ int main(int argc, char **argv)
 	uint64_t file_size = suff_list.tellg();
 
 	vector<uint64_t> * ssa_list = new vector<uint64_t>();
-	vector<uint64_t> * slcp_list = new vector<uint64_t>();
+	//vector<uint64_t> * slcp_list = new vector<uint64_t>();
 
 	c = 0;
 	string line="";
@@ -367,8 +363,8 @@ int main(int argc, char **argv)
 				return 1;
 			}	
 			
-			if(line.compare("\n")!=0)
-				slcp_list->push_back(0);
+			//if(line.compare("\n")!=0)
+			//	slcp_list->push_back(0);
 			
 			line = "";
 			
@@ -550,7 +546,7 @@ int main(int argc, char **argv)
 	}
 	cout<<endl;	
 	delete( ssa_list );
-	delete( slcp_list );
+	//delete( slcp_list );
 	delete( final_lcp );
 	delete( final_ssa );
 	delete( final_lcp_prime );
