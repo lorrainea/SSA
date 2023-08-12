@@ -313,15 +313,21 @@ int main(int argc, char **argv)
 	/* Read in sequence file */
 	ifstream seq(argv[1], ios::in | ios::binary);
 
-	vector<char> input_seq_vec;
-  	char c;
+	//vector<char> input_seq_vec;
+	unsigned char *input_seq_char=NULL;  
+	uint64_t cnt=0;
+	char c;
   	while (seq.get(c))     
   	{
-  		input_seq_vec.push_back(c);	
-  	}
+  		if(cnt==0 || cnt%1048576)
+  			input_seq_char = ( unsigned char * ) realloc ( input_seq_char,   ( cnt + 1048576 ) * sizeof ( unsigned char ) );		
+		input_seq_char[ cnt ] = c;
+		cnt++;
+  	}	
   	seq.close();
-  	uint64_t text_size = input_seq_vec.size();
-  	unsigned char * sequence = reinterpret_cast<unsigned char *>(input_seq_vec.data());
+
+  	unsigned char * sequence=input_seq_char;
+	uint64_t text_size=cnt;	
 
 	cout<<"Text length n = " << text_size << endl;
 
@@ -483,7 +489,9 @@ int main(int argc, char **argv)
 	delete( final_ssa );
 	delete( B );
 	delete( A );
-	
+	free ( input_seq_char);
+	input_seq_char = NULL;
+
 	return 0;
 }
 
