@@ -337,7 +337,7 @@ int main(int argc, char **argv)
 	uint64_t file_size = suff_list.tellg();
 
 	vector<uint64_t> * ssa_list = new vector<uint64_t>();
-	vector<uint64_t> * slcp_list = new vector<uint64_t>();
+	//vector<uint64_t> * slcp_list = new vector<uint64_t>();
 
 	c = 0;
 	string line="";
@@ -363,8 +363,8 @@ int main(int argc, char **argv)
 				return 1;
 			}
 
-			if(line.compare("\n")!=0)	
-				slcp_list->push_back(0);
+			//if(line.compare("\n")!=0)	
+			//	slcp_list->push_back(0);
 			
 			line = "";
 			
@@ -428,7 +428,7 @@ int main(int argc, char **argv)
 	uint64_t m = ssa_list->size();
 	
 	delete( ssa_list );
-	delete( slcp_list );
+	//delete( slcp_list );
 	
 	hash_total = 0;
 	kr_total = 0;
