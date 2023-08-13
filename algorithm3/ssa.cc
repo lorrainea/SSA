@@ -337,7 +337,6 @@ int main(int argc, char **argv)
 	uint64_t file_size = suff_list.tellg();
 
 	vector<uint64_t> * ssa_list = new vector<uint64_t>();
-	//vector<uint64_t> * slcp_list = new vector<uint64_t>();
 
 	c = 0;
 	string line="";
@@ -362,9 +361,6 @@ int main(int argc, char **argv)
 				cout<<"Suffix list contains a suffix larger than sequence length"<<endl;
 				return 1;
 			}	
-			
-			//if(line.compare("\n")!=0)
-			//	slcp_list->push_back(0);
 			
 			line = "";
 			
@@ -546,7 +542,6 @@ int main(int argc, char **argv)
 	}
 	cout<<endl;	
 	delete( ssa_list );
-	//delete( slcp_list );
 	delete( final_lcp );
 	delete( final_ssa );
 	delete( final_lcp_prime );
@@ -557,7 +552,6 @@ int main(int argc, char **argv)
 	
 	free ( input_seq_char);
 	input_seq_char = NULL;
-	//free( sequence );
 	
 	return 0;
 }
