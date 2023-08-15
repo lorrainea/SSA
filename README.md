@@ -1,6 +1,7 @@
 ### Install and run MA and PA:
 
 ```
+cd MA (or cd PA)
 make -f Makefile.gcc
 ./ssa <sequence_file> <suffix_list> <output_filename>
 ```
@@ -15,6 +16,7 @@ ________________________________
 ### Install and run SSA-LCE:
 
 ```
+cd SSA-LCE
 cmake .
 make
 ./sa-rk <sequence_file> <output_filename> <suffix_list> 
