@@ -1,4 +1,4 @@
-### Install and run MA and PA using:
+### Install and run MA and PA:
 
 ```
 make -f Makefile.gcc
