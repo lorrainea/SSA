@@ -14,6 +14,12 @@
  *   GNU General Public License for more details (<http://www.gnu.org/licenses/>).
  */
 
+/*
+ * Modification: Code slightly modified to read the input from text files
+ * and to compute and output the sparse LCP array from the LCE data structure.
+ */
+
+
 #include <includes.hpp>
 #include <rk_lce.hpp>
 
