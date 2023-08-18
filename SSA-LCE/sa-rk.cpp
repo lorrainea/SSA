@@ -15,8 +15,9 @@
  */
 
 /*
- * Modification: Code slightly modified to read the input from text files
- * and to compute and output the sparse LCP array from the LCE data structure.
+ * Modification: This code is modified from the original to read the input 
+ * from text files and to compute and output the sparse LCP array from the 
+ * LCE data structure. These modifications were done by the authors of SSA.
  */
 
 
