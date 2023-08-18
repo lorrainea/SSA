@@ -9,7 +9,7 @@ make -f Makefile.gcc
 <sequence_file> is a textfile containing the input text and
 <suffix_list> is a textfile containing the starting positions of the suffixes to be sorted (separated with a new line)
 
-Two files are output: <output_filename>.ssa which contains the sparse suffix array; and <output_filename>.lcp which contains the lcp values between consecutive suffixes. 
+Two files are output: <output_filename>.ssa which contains the sparse suffix array; and <output_filename>.lcp which contains the lcp values between consecutive suffixes. Every entry is on a new line.
 
 The program can be run using the following example, where the files out.ssa and out.lcp will be output:
 
@@ -30,7 +30,7 @@ make
 <sequence_file> is a textfile containing the input text and
 <suffix_list> is a textfile containing the starting positions of the suffixes to be sorted (separated with a new line)
 
-Two output files are output: <output_filename>.ssa which contains the sparse suffix array; and <output_filename>.lcp which contains the lcp values between consecutive suffixes. 
+Two output files are output: <output_filename>.ssa which contains the sparse suffix array; and <output_filename>.lcp which contains the lcp values between consecutive suffixes. Every entry is on a new line.
 
 The program can be run using the following example, where the files out.ssa and out.lcp will be output:
 
