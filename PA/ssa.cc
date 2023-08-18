@@ -1,6 +1,6 @@
 /**
     Sparse Suffix and LCP Array: Simple, Direct, Small, and Fast
-    Copyright (C) 2021 Lorraine A. K. Ayad, Grigorios Loukides, 
+    Copyright (C) 2023 Lorraine A. K. Ayad, Grigorios Loukides, 
     Solon P. Pissis and Hilde Verbeek
 
     This program is free software: you can redistribute it and/or modify
