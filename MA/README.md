@@ -16,7 +16,8 @@ The program can be run using the following example, where the files out.ssa and 
 ./ssa ./data/text/text1 ./data/suffixes/suffixes1 out
 ```
 
-The time complexity is O(n log b) and the extra space used is O(b), where n is the number of bytes in <sequence_file> and b is the number of positions in <suffix_list>.
+The time complexity is  <b> O(n log b) </b> and the extra space used is <b> O(b) </b>, 
+where <b> n </b> is the number of bytes in <sequence_file> and <b> b </b> is the number of positions in <suffix_list>.
 
 MA is a space-efficient simulation of the Monte Carlo algorithm presented in:
 
