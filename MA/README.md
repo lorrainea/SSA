@@ -18,5 +18,11 @@ The program can be run using the following example, where the files out.ssa and 
 
 The time complexity is O(n log b) and the extra space used is O(b), where n is the number of bytes in <sequence_file> and b is the number of positions in <suffix_list>.
 
+MA is a space-efficient simulation of the Monte Carlo algorithm presented in:
+
+```
+Tomohiro I, Juha Kärkkäinen, Dominik Kempa: Faster Sparse Suffix Sorting. STACS 2014: 386-396
+```
+
 ________________________________
 
