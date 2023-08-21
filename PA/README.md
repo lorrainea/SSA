@@ -16,7 +16,7 @@ The program can be run using the following example, where the files out.ssa and 
 ./ssa ./data/text/text1 ./data/suffixes/suffixes1 out
 ```
 
-The time complexity is <b>O(n + b log b + (b'n/b) log b)</b> and the extra space used is <b>O(b)</b>, 
+The time complexity is <b>O(n + b log b + (b'n/b) log b)</b> and the extra space used is <b> O(b) </b>, 
 where n is the number of bytes in <sequence_file>, 
 b is the number of positions in <suffix_list>, 
 and b' is the number of suffixes with an LCP value at least 2n/b.
