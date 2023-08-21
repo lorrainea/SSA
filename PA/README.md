@@ -19,7 +19,7 @@ The program can be run using the following example, where the files out.ssa and 
 The time complexity is <b>O(n + b log b + (b'n/b) log b)</b> and the extra space used is <b> O(b) </b>, 
 where <b> n </b> is the number of bytes in <sequence_file>, 
 <b> b </b> is the number of positions in <suffix_list>, 
-and <b> b' </b> is the number of suffixes with an LCP value at least 2n/b.
+and <b> b' </b> is the number of suffixes with an LCP value at least <b> 2n/b </b>.
 
 ________________________________
 
