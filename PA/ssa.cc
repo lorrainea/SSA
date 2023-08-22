@@ -69,6 +69,7 @@ double gr_total;
 double order_total;
 double sort_total;
 
+/* Comparator */
 auto compare(unsigned char * sequence, vector<uint64_t> * A, uint64_t lcp )
 {
 	return [sequence, A, lcp](uint64_t a, uint64_t b) 
@@ -77,7 +78,7 @@ auto compare(unsigned char * sequence, vector<uint64_t> * A, uint64_t lcp )
 	};
 }
 
-/* Computing the fingerprint of an SSA */
+/* Compute the KR fingerprint of sequence[ssa..ssa+l-1] using the FP table -- Time is min(l,n/s), where s is the size of the FP table */
 uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size )
 {
 	uint64_t fp = 0;
