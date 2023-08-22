@@ -261,6 +261,7 @@ uint64_t group( vector<SSA> &B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp
 	return 0;
 }
 
+/* Sort the final group members and infer the SSA and SLCP array -- Time is O(b log b) */
 uint64_t order( vector<uint64_t> * final_ssa, vector<uint64_t> * final_lcp, vector<SSA> &B, vector<uint64_t> * A, unsigned char * sequence, uint64_t text_size, uint64_t b )
 {
 
