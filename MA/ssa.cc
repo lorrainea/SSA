@@ -79,7 +79,7 @@ auto compare(unsigned char * sequence, vector<uint64_t> * A, uint64_t lcp )
 	};
 }
 
-/* Compute the KR fingerprint of sequence[ssa..ssa+l-1] using the FP table -- Time is min(l,n/s), where s is the size of the FP table */
+/* Compute the KR fingerprint of sequence[ssa..ssa+l-1] using the FP table -- Time is O(min(l,n/s)), where s is the size of the FP table */
 uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size )
 {
 	uint64_t fp = 0;
@@ -145,7 +145,7 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
         return fp;
     }
 
-/* Extend the prefixes of grouped suffixes by length l and re-group the computed KR fingerprints */
+/* Extend the prefixes of grouped suffixes by length l and re-group the computed KR fingerprints -- Time is O(b.min(l,n/s)), where s is the size of the FP table */
 uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m, uint64_t &z )
 {
     	vector<SSA> * B_prime = new vector<SSA>();
