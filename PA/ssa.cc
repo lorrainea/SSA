@@ -60,7 +60,6 @@ double gettime( void )
 
 double prep_total;
 double hash_total;
-double kr_total;
 double gr_total;
 double order_total;
 double sort_total;
@@ -447,7 +446,6 @@ int main(int argc, char **argv)
 	uint64_t m = ssa_list->size();
 
 	hash_total = 0;
-	kr_total = 0;
 	gr_total = 0;
 	
 	uint64_t c1 = 1;
