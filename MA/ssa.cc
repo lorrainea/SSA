@@ -17,27 +17,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include<iostream>
+#include <iostream>
 #include <cstring>
 #include <string>
-#include <set>
-#include <math.h>
 #include <fstream>
 #include <stack>
 #include <algorithm>
 #include <chrono>
 #include <ctime>
-#include <unordered_map>
 #include <vector>
-#include <map>
 #include <cmath>
-#include "krfp.h"
-#include "unordered_dense.h"
-#include <assert.h>
 #include <sys/time.h>
 #include <numeric>
-#include <memory>
 #include <sstream>
+#include "krfp.h"
+#include "unordered_dense.h"
+
 #define IPS4 false
 
 #if IPS4 == true
@@ -48,7 +43,6 @@
 #define THRESHOLD 1500000
 
 using namespace std;
-
 
 struct SSA
 {
@@ -63,6 +57,7 @@ double gettime( void )
 	gettimeofday( &ttime , 0 );
 	return ttime.tv_sec + ttime.tv_usec * 0.000001;
 };
+
 double prep_total;
 double hash_total;
 double kr_total;
