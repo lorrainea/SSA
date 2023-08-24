@@ -60,7 +60,6 @@ double gettime( void )
 
 double prep_total;
 double hash_total;
-double kr_total;
 double gr_total;
 double order_total;
 double sort_total;
@@ -443,7 +442,6 @@ int main(int argc, char **argv)
 	delete( ssa_list );
 	
 	hash_total = 0;
-	kr_total = 0;
 	gr_total = 0;
 	cout<<"Grouping starts"<<endl;
 	while( l > 0 )
