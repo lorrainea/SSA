@@ -19,7 +19,7 @@ The program can be run using the following example, where the files out.ssa and 
 The time complexity is  <b> O(n log b) </b> and the extra space used is <b> O(b) </b>, 
 where <b> n </b> is the number of bytes in <sequence_file> and <b> b </b> is the number of positions in <suffix_list>.
 
-MA is a space-efficient simulation of the Monte Carlo algorithm presented in for constructing the sparse suffix tree:
+MA is a space-efficient simulation of the Monte Carlo algorithm, for constructing the sparse suffix tree, presented in:
 
 ```
 Tomohiro I, Juha Kärkkäinen, Dominik Kempa: Faster Sparse Suffix Sorting. STACS 2014: 386-396
