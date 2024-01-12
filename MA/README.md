@@ -24,6 +24,6 @@ MA is a space-efficient simulation of the Monte Carlo algorithm, for constructin
 ```
 Tomohiro I, Juha Kärkkäinen, Dominik Kempa: Faster Sparse Suffix Sorting. STACS 2014: 386-396
 ```
-MA rather construct the sparse SA and the sparse LCP array directly.
+MA rather constructs the sparse SA and the sparse LCP array directly.
 ________________________________
 
