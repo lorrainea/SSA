@@ -54,7 +54,9 @@ std::uint64_t concat(const std::uint64_t lhash,
     const std::uint64_t rhash, const std::uint64_t rlen);
 std::uint64_t subtract(const std::uint64_t long_hash, 
 const std::uint64_t short_hash, const std::uint64_t right_len);
-void init();
+std::uint64_t subtract_fast(const std::uint64_t long_hash, 
+const std::uint64_t short_hash, const std::uint64_t power);
+std::uint64_t init();
 
 //=============================================================================
 // Compute Karp-Rabin hash of a given string.

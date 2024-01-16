@@ -131,26 +131,6 @@ std::uint64_t  pow_mod_mersenne(
   return ret;
 }
 
-
-
-/*inline std::uint64_t pow_mod_mersenne(const std::uint64_t a, std::uint64_t n, const std::uint64_t k){
-
-	static constexpr uint64_t w = 61;	
-	static constexpr uint64_t q = (uint64_t(1)<<w)-1;
-	uint64_t x = 1;
-	if(n==0) return x;
-	n = n % w;
-	uint64_t l_bits = n;		//how many bits exit from left and enter from right
-	uint64_t r_bits = w-l_bits;
-	uint64_t MASK = (uint64_t(1) << r_bits)-1;
-	uint64_t R = x&MASK;	//right part
-	x = x >> r_bits;
-	R = R << l_bits;
-	auto result = x | R;
-	return result%q;
-}
-*/
-
 //=============================================================================
 // Given Karp-Rabin hashes of two substrings, return
 // the Karp-Rabin hash of their concatenation.
@@ -187,12 +167,26 @@ std::uint64_t subtract(
     ((long_hash + p) - tmp);
 }
 
+std::uint64_t subtract_fast(
+    const std::uint64_t long_hash,
+    const std::uint64_t short_hash,
+    const std::uint64_t power) {
+  const std::uint64_t pow = power;
+  const std::uint64_t tmp = mul_mod_mersenne(
+      short_hash, pow, mersenne_prime_exponent);
+  const std::uint64_t p = ((std::uint64_t)1 << mersenne_prime_exponent) - 1;
+  return (long_hash >= tmp) ?
+    (long_hash - tmp) :
+    ((long_hash + p) - tmp);
+}
+
 //=============================================================================
 // Initialize the base and exponent for Karp-Rabin hashing.
 //=============================================================================
-void init() {
+std::uint64_t init() {
   mersenne_prime_exponent = 61; //do not change this
   hash_variable = rand_mod_mersenne(mersenne_prime_exponent);
+  return hash_variable;
 }
 }
 

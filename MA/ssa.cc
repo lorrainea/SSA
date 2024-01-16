@@ -74,11 +74,12 @@ auto compare(unsigned char * sequence, vector<uint64_t> * A, uint64_t lcp )
 }
 
 /* Compute the KR fingerprint of sequence[ssa..ssa+l-1] using the FP table -- Time is O(min(l,n/s)), where s is the size of the FP table */
-uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size )
+uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t power )
 {
 	uint64_t fp = 0;
 	uint64_t ssa_end = (text_size >= ssa+l) ? ssa+l : text_size; //this is the end of the substring we are interested in PLUS 1
-
+	bool subtract_slow = (text_size >= ssa+l) ? false : true;
+	
 	if( l > fp_len )
 	{
 		uint64_t fp_short = 0;
@@ -128,7 +129,9 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
                 	fp_long = FP[prefix - 1];
                 }
 
-                fp = karp_rabin_hashing::subtract(fp_long, fp_short, ssa_end - ssa);
+		if( subtract_slow == false )
+               	 fp = karp_rabin_hashing::subtract_fast(fp_long, fp_short, power);
+                else fp = karp_rabin_hashing::subtract(fp_long, fp_short, ssa_end - ssa);
 
             }
             else 
@@ -140,10 +143,12 @@ uint64_t fingerprint( uint64_t ssa, uint64_t * FP, uint64_t fp_len, uint64_t l, 
     }
 
 /* Extend the prefixes of grouped suffixes by length l and re-group the computed KR fingerprints -- Time is O(b.min(l,n/s)), where s is the size of the FP table */
-uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m, uint64_t &z )
+uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t fp_len, uint64_t l, unsigned char * sequence, uint64_t text_size, uint64_t b, uint64_t &m, uint64_t &z, uint64_t hash_variable )
 {
     	vector<SSA> * B_prime = new vector<SSA>();
 	(*B_prime).reserve(b); 
+	
+	uint64_t power = karp_rabin_hashing::pow_mod_mersenne(hash_variable, l, 61);
 
 	const auto Bsz = B->size();
 	
@@ -161,7 +166,7 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 			for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end(); ++it)
 			{
 				if ( (*A)[(*it)]+(*B)[i].lcp + l > text_size ) { tmp.push_back((*it)); continue; }
-				uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size );
+				uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size, power );
 				vec_to_sort.push_back( make_pair(fp,*it) );
 			}
 
@@ -193,7 +198,7 @@ uint64_t group( vector<SSA> * B, vector<uint64_t> * A, uint64_t * FP, uint64_t f
 			for(auto it=(*B)[i].L.begin();it!=(*B)[i].L.end(); ++it)
 			{
 				if ( (*A)[(*it)]+(*B)[i].lcp + l > text_size ) { tmp.push_back((*it)); continue; }
-				uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size );
+				uint64_t fp = fingerprint( (*A)[(*it)]+(*B)[i].lcp, FP, fp_len, l, sequence, text_size, power);
 				auto itx = groups.find(fp);
 				if(itx == groups.end())
 				{
@@ -385,10 +390,11 @@ int main(int argc, char **argv)
 	}
 	suff_list.close();	
 	
-	karp_rabin_hashing::init();
+	uint64_t hash_variable = karp_rabin_hashing::init();
 	uint64_t b = ssa_list->size();
 	cout<<"Number of suffixes b = " << b << endl;
 	uint64_t l = 1ULL << static_cast<uint64_t>(log2(text_size));
+
 	uint64_t s = 2*b;
 	if ( s > text_size ) s = text_size;
         uint64_t fp_len = text_size / s;
@@ -447,7 +453,7 @@ int main(int argc, char **argv)
 	while( l > 0 )
 	{
 		cout<< "l: " << l <<", nodes: "<< m <<endl;
-		group( B, A, FP, fp_len, l, sequence, text_size, b, m, z );
+		group( B, A, FP, fp_len, l, sequence, text_size, b, m, z, hash_variable );
 		l=l>>1;
 	}
 	cout<<"Grouping ends"<<endl;
