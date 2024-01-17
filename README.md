@@ -16,6 +16,12 @@ The program can be run using the following example, where the files out.ssa and 
 ```
 ./ssa ./data/text/text1 ./data/suffixes/suffixes1 out
 ```
+When publishing work that is based on the results from SSA please cite:
+```
+Lorraine A. K. Ayad, Grigorios Loukides, Solon P. Pissis, Hilde Verbeek:
+Sparse Suffix and LCP Array: Simple, Direct, Small, and Fast. 
+LATIN 2024
+```
 ________________________________
 
 ### Install and run SSA-LCE:
