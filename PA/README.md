@@ -17,7 +17,7 @@ The program can be run using the following example, where the files out.ssa and 
 ```
 
 PA is a parameterized version of MA for constructing the sparse suffix and LCP arrays <b> directly</b>.
-It is usally <b>orders of magnitude faster</b> than MA and requires a similar amount of memory.
+It is usally <b>many times faster</b> than MA while requiring a similar amount of memory.
 
 The time complexity is <b>O(n + b log b + (b'n/b) log b)</b> and the extra space used is <b> O(b) </b>, 
 where <b> n </b> is the number of bytes in <sequence_file>, 
