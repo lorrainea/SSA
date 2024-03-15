@@ -16,6 +16,8 @@ The program can be run using the following example, where the files out.ssa and 
 ```
 ./ssa ./data/text/text1 ./data/suffixes/suffixes1 out
 ```
+PA is usally many times faster than MA and SSA-LCE.
+
 When publishing work that is based on the results from SSA please cite:
 ```
 Lorraine A. K. Ayad, Grigorios Loukides, Solon P. Pissis, Hilde Verbeek:
