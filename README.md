@@ -16,7 +16,7 @@ The program can be run using the following example, where the files out.ssa and 
 ```
 ./ssa ./data/text/text1 ./data/suffixes/suffixes1 out
 ```
-PA is usally <b>many times faster<\b> than MA and SSA-LCE.
+PA is usally <b>many times faster</b> than MA and SSA-LCE.
 
 When publishing work that is based on the results from SSA please cite:
 ```
